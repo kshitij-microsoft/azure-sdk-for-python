@@ -1,5 +1,4 @@
 # coding=utf-8
-# pylint: disable=too-many-lines
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,10 +8,9 @@
 
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
-from ... import _serialization
+from .._utils import serialization as _serialization
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import,ungrouped-imports
     from .. import models as _models
 
 
@@ -150,14 +148,14 @@ class Resource(_serialization.Model):
         :paramtype tags: dict[str, str]
         """
         super().__init__(**kwargs)
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
         self.location = location
         self.tags = tags
 
 
-class OpenShiftManagedCluster(Resource):  # pylint: disable=too-many-instance-attributes
+class OpenShiftManagedCluster(Resource):
     """OpenShift Managed cluster.
 
     Variables are only populated by the server, and will be ignored when sending a request.
@@ -289,11 +287,11 @@ class OpenShiftManagedCluster(Resource):  # pylint: disable=too-many-instance-at
         """
         super().__init__(location=location, tags=tags, **kwargs)
         self.plan = plan
-        self.provisioning_state = None
+        self.provisioning_state: Optional[str] = None
         self.open_shift_version = open_shift_version
-        self.cluster_version = None
-        self.public_hostname = None
-        self.fqdn = None
+        self.cluster_version: Optional[str] = None
+        self.public_hostname: Optional[str] = None
+        self.fqdn: Optional[str] = None
         self.network_profile = network_profile
         self.router_profiles = router_profiles
         self.master_pool_profile = master_pool_profile
@@ -569,7 +567,7 @@ class OpenShiftManagedClusterListResult(_serialization.Model):
         """
         super().__init__(**kwargs)
         self.value = value
-        self.next_link = None
+        self.next_link: Optional[str] = None
 
 
 class OpenShiftManagedClusterMasterPoolProfile(_serialization.Model):
@@ -715,8 +713,8 @@ class OpenShiftRouterProfile(_serialization.Model):
         """
         super().__init__(**kwargs)
         self.name = name
-        self.public_subdomain = None
-        self.fqdn = None
+        self.public_subdomain: Optional[str] = None
+        self.fqdn: Optional[str] = None
 
 
 class PurchasePlan(_serialization.Model):

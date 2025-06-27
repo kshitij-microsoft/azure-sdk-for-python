@@ -36,7 +36,7 @@ pip install azure-servicebus
 To use this package, you must have:
 * Azure subscription - [Create a free account][azure_sub]
 * Azure Service Bus - [Namespace and management credentials][service_bus_namespace]
-* Python 3.8 or later - [Install Python][python]
+* Python 3.9 or later - [Install Python][python]
 
 
 If you need an Azure service bus namespace, you can create it via the [Azure Portal][azure_namespace_creation].
@@ -95,7 +95,65 @@ To interact with these resources, one should be familiar with the following SDK 
 
 ### Thread safety
 
-We do not guarantee that the ServiceBusClient, ServiceBusSender, and ServiceBusReceiver are thread-safe. We do not recommend reusing these instances across threads. It is up to the running application to use these classes in a thread-safe manner.
+We do not guarantee that the `ServiceBusClient`, `ServiceBusSender`, and `ServiceBusReceiver` are thread-safe or coroutine-safe. We do not recommend reusing these instances across threads or sharing them between coroutines. It is up to the running application to use these classes in a concurrency-safe manner.
+
+The data model type, `ServiceBusMessageBatch` is not thread-safe or coroutine-safe. It should not be shared across threads nor used concurrently with client methods.
+
+For scenarios requiring concurrent sending from multiple threads, ensure proper thread-safety management using mechanisms like `threading.Lock()`. **Note:** Native async APIs should be used instead of running in a `ThreadPoolExecutor`, if possible.
+```python
+import threading
+from concurrent.futures import ThreadPoolExecutor
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from azure.identity import DefaultAzureCredential
+
+SERVICE_BUS_NAMESPACE = "<your-namespace>.servicebus.windows.net"
+QUEUE_NAME = "<your-queue-name>"
+
+lock = threading.Lock()
+
+def send_batch(sender_id, sender):
+    with lock:
+        messages = [ServiceBusMessage(f"Message {i} from sender {sender_id}") for i in range(10)]
+        sender.send_messages(messages)
+        print(f"Sender {sender_id} sent messages.")
+
+credential = DefaultAzureCredential()
+client = ServiceBusClient(fully_qualified_namespace=SERVICE_BUS_NAMESPACE, credential=credential)
+
+with client:
+    sender = client.get_queue_sender(queue_name=QUEUE_NAME)
+    with sender:
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            for i in range(5):
+                executor.submit(send_batch, i, sender)
+```
+
+For scenarios requiring concurrent sending in asyncio applications, ensure proper coroutine-safety management using mechanisms like `asyncio.Lock()`.
+```python
+import asyncio
+from azure.servicebus.aio import ServiceBusClient
+from azure.servicebus import ServiceBusMessage
+from azure.identity.aio import DefaultAzureCredential
+
+SERVICE_BUS_NAMESPACE = "<your-namespace>.servicebus.windows.net"
+QUEUE_NAME = "<your-queue-name>"
+
+lock = asyncio.Lock()
+
+async def send_batch(sender_id, sender):
+    async with lock:
+        messages = [ServiceBusMessage(f"Message {i} from sender {sender_id}") for i in range(10)]
+        await sender.send_messages(messages)
+        print(f"Sender {sender_id} sent messages.")
+
+credential = DefaultAzureCredential()
+client = ServiceBusClient(fully_qualified_namespace=SERVICE_BUS_NAMESPACE, credential=credential)
+
+async with client:
+    sender = client.get_queue_sender(queue_name=QUEUE_NAME)
+    async with sender:
+        await asyncio.gather(*(send_batch(i, sender) for i in range(5)))
+```
 
 ## Examples
 
@@ -506,7 +564,7 @@ Please find further examples in the [samples](https://github.com/Azure/azure-sdk
 
 ### Additional documentation
 
-For more extensive documentation on the Service Bus service, see the [Service Bus documentation][service_bus_docs] on docs.microsoft.com.
+For more extensive documentation on the Service Bus service, see the [Service Bus documentation][service_bus_docs] on learn.microsoft.com.
 
 ### Management capabilities and documentation
 
@@ -594,49 +652,49 @@ For more information see the [Code of Conduct FAQ](https://opensource.microsoft.
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 <!-- LINKS -->
-[azure_cli]: https://docs.microsoft.com/cli/azure
-[api_docs]: https://docs.microsoft.com/python/api/overview/azure/servicebus-readme
-[product_docs]: https://docs.microsoft.com/azure/service-bus-messaging/
+[azure_cli]: https://learn.microsoft.com/cli/azure
+[api_docs]: https://learn.microsoft.com/python/api/overview/azure/servicebus-readme
+[product_docs]: https://learn.microsoft.com/azure/service-bus-messaging/
 [azure_portal]: https://portal.azure.com
 [azure_sub]: https://azure.microsoft.com/free/
-[cloud_shell]: https://docs.microsoft.com/azure/cloud-shell/overview
+[cloud_shell]: https://learn.microsoft.com/azure/cloud-shell/overview
 [cloud_shell_bash]: https://shell.azure.com/bash
 [pip]: https://pypi.org/project/pip/
 [pypi]: https://pypi.org/project/azure-servicebus/
 [python]: https://www.python.org/downloads/
 [venv]: https://docs.python.org/3/library/venv.html
 [virtualenv]: https://virtualenv.pypa.io
-[service_bus_namespace]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-create-namespace-portal
-[service_bus_overview]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview
-[queue_status_codes]: https://docs.microsoft.com/rest/api/servicebus/create-queue#response-codes
-[service_bus_docs]: https://docs.microsoft.com/azure/service-bus/
-[service_bus_mgmt_docs]: https://docs.microsoft.com/python/api/azure-mgmt-servicebus/?view=azure-python
-[queue_concept]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview#queues
-[topic_concept]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview#topics
-[subscription_concept]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-queues-topics-subscriptions#topics-and-subscriptions
-[azure_namespace_creation]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-create-namespace-portal
+[service_bus_namespace]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-create-namespace-portal
+[service_bus_overview]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview
+[queue_status_codes]: https://learn.microsoft.com/rest/api/servicebus/create-queue#response-codes
+[service_bus_docs]: https://learn.microsoft.com/azure/service-bus/
+[service_bus_mgmt_docs]: https://learn.microsoft.com/python/api/azure-mgmt-servicebus/?view=azure-python
+[queue_concept]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview#queues
+[topic_concept]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview#topics
+[subscription_concept]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-queues-topics-subscriptions#topics-and-subscriptions
+[azure_namespace_creation]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-create-namespace-portal
 [servicebus_management_repository]: https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/servicebus/azure-mgmt-servicebus
-[get_servicebus_conn_str]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-create-namespace-portal#get-the-connection-string
-[servicebus_aad_authentication]: https://docs.microsoft.com/azure/service-bus-messaging/service-bus-authentication-and-authorization
+[get_servicebus_conn_str]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-create-namespace-portal#get-the-connection-string
+[servicebus_aad_authentication]: https://learn.microsoft.com/azure/service-bus-messaging/service-bus-authentication-and-authorization
 [token_credential_interface]: https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/core/azure-core/azure/core/credentials.py
 [pypi_azure_identity]: https://pypi.org/project/azure-identity/
-[message_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusMessage
-[receiver_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusReceiver
-[sender_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusSender
-[client_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusClient
-[send_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=send_messages#azure.servicebus.ServiceBusSender.send_messages
-[receive_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=receive_messages#azure.servicebus.ServiceBusReceiver.receive_messages
-[streaming_receive_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=next#azure.servicebus.ServiceBusReceiver.next
-[session_receive_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=session_id#azure.servicebus.ServiceBusSessionReceiver.receive_messages
-[session_send_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=session_id#azure.servicebus.ServiceBusMessage.session_id
-[complete_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=complete_message#azure.servicebus.ServiceBusReceiver.complete_message
-[abandon_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=abandon_message#azure.servicebus.ServiceBusReceiver.abandon_message
-[defer_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=defer_message#azure.servicebus.ServiceBusReceiver.defer_message
-[deadletter_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=dead_letter_message#azure.servicebus.ServiceBusReceiver.dead_letter_message
-[autolockrenew_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.AutoLockRenewer
-[exception_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html#module-azure.servicebus.exceptions
-[subscription_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.aio.html?highlight=subscription#azure.servicebus.aio.ServiceBusClient.get_subscription_receiver
-[topic_reference]: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/latest/azure.servicebus.html?highlight=topic#azure.servicebus.ServiceBusClient.get_topic_sender
+[message_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusMessage
+[receiver_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusReceiver
+[sender_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusSender
+[client_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.ServiceBusClient
+[send_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=send_messages#azure.servicebus.ServiceBusSender.send_messages
+[receive_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=receive_messages#azure.servicebus.ServiceBusReceiver.receive_messages
+[streaming_receive_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=next#azure.servicebus.ServiceBusReceiver.next
+[session_receive_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=session_id#azure.servicebus.ServiceBusSessionReceiver.receive_messages
+[session_send_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=session_id#azure.servicebus.ServiceBusMessage.session_id
+[complete_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=complete_message#azure.servicebus.ServiceBusReceiver.complete_message
+[abandon_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=abandon_message#azure.servicebus.ServiceBusReceiver.abandon_message
+[defer_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=defer_message#azure.servicebus.ServiceBusReceiver.defer_message
+[deadletter_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=dead_letter_message#azure.servicebus.ServiceBusReceiver.dead_letter_message
+[autolockrenew_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html#azure.servicebus.AutoLockRenewer
+[exception_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html#module-azure.servicebus.exceptions
+[subscription_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.aio.html?highlight=subscription#azure.servicebus.aio.ServiceBusClient.get_subscription_receiver
+[topic_reference]: https://azuresdkdocs.z19.web.core.windows.net/python/azure-servicebus/latest/azure.servicebus.html?highlight=topic#azure.servicebus.ServiceBusClient.get_topic_sender
 [sample_authenticate_client_connstr]: https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/servicebus/azure-servicebus/samples/sync_samples/authenticate_client_connstr.py
 [sample_authenticate_client_aad]: https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/servicebus/azure-servicebus/samples/sync_samples/client_identity_authentication.py
 [migration_guide]: https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/servicebus/azure-servicebus/migration_guide.md

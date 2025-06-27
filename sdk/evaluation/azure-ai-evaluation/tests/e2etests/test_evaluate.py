@@ -5,16 +5,28 @@ import pathlib
 import pandas as pd
 import pytest
 import requests
+from typing import Dict
+from unittest.mock import Mock, patch
+
 from ci_tools.variables import in_ci
 
 from azure.ai.evaluation import (
     F1ScoreEvaluator,
     FluencyEvaluator,
-    GroundednessEvaluator,
     evaluate,
 )
+from azure.ai.evaluation import AzureOpenAIModelConfiguration
 from azure.ai.evaluation._common.math import list_mean_nan_safe
 from azure.ai.evaluation._azure._clients import LiteMLClient
+from azure.ai.evaluation._constants import TokenScope
+from azure.ai.evaluation._user_agent import UserAgentSingleton
+from azure.ai.evaluation._version import VERSION
+
+
+@pytest.fixture
+def csv_file():
+    data_path = os.path.join(pathlib.Path(__file__).parent.resolve(), "data")
+    return os.path.join(data_path, "evaluate_test_data.csv")
 
 
 @pytest.fixture
@@ -49,7 +61,7 @@ def _get_run_from_run_history(flow_run_id, azure_ml_client: LiteMLClient, projec
     """Get run info from run history"""
     from azure.identity import DefaultAzureCredential
 
-    token = "Bearer " + DefaultAzureCredential().get_token("https://management.azure.com/.default").token
+    token = "Bearer " + DefaultAzureCredential().get_token(TokenScope.DEFAULT_AZURE_MANAGEMENT).token
     headers = {
         "Authorization": token,
         "Content-Type": "application/json",
@@ -167,7 +179,7 @@ class TestEvaluate:
         assert metrics.get(metric) == list_mean_nan_safe(row_result_df[out_column])
         assert row_result_df[out_column][2] == 31
 
-    def test_evaluate_with_target(self, questions_file):
+    def test_evaluate_with_target(self, questions_file, run_from_temp_dir):
         """Test evaluation with target function."""
         # We cannot define target in this file as pytest will load
         # all modules in test folder and target_fn will be imported from the first
@@ -205,7 +217,7 @@ class TestEvaluate:
             {"default": {"column_mapping": {"another_question": "${target.query}"}}},
         ],
     )
-    def test_evaluate_another_questions(self, questions_file, evaluation_config):
+    def test_evaluate_another_questions(self, questions_file, evaluation_config, run_from_temp_dir):
         """Test evaluation with target function."""
         from .target_fn import target_fn3
 
@@ -264,7 +276,7 @@ class TestEvaluate:
             ),
         ],
     )
-    def test_evaluate_with_evaluator_config(self, questions_file, evaluate_config):
+    def test_evaluate_with_evaluator_config(self, questions_file, evaluate_config, run_from_temp_dir):
         input_data = pd.read_json(questions_file, lines=True)
         from .target_fn import target_fn2
 
@@ -431,3 +443,120 @@ class TestEvaluate:
     @pytest.mark.skip(reason="TODO: Add test back")
     def test_prompty_with_threadpool_implementation(self):
         pass
+
+    def test_evaluate_with_csv_data(self, csv_file, data_file):
+        def remove_whitespace(s):
+            import re
+
+            return re.sub(r"\s+", "", s)
+
+        # load identical data files in different formats
+        jsonl_input_data = pd.read_json(data_file, lines=True)
+        csv_input_data = pd.read_csv(csv_file)
+
+        # create evaluator
+        f1_score_eval = F1ScoreEvaluator()
+
+        # run the evaluation on jsonl data
+        jsonl_result = evaluate(
+            data=data_file,
+            evaluators={"f1_score": f1_score_eval},
+        )
+
+        jsonl_row_result_df = pd.DataFrame(jsonl_result["rows"])
+        jsonl_metrics = jsonl_result["metrics"]
+
+        # run the evaluation on csv data
+        csv_result = evaluate(
+            data=csv_file,
+            evaluators={"f1_score": f1_score_eval},
+        )
+
+        csv_row_result_df = pd.DataFrame(csv_result["rows"])
+        csv_metrics = csv_result["metrics"]
+
+        # validate the results
+        assert jsonl_result["metrics"] == csv_result["metrics"]
+        assert jsonl_result["rows"][0]["inputs.context"] == csv_result["rows"][0]["inputs.context"]
+        assert jsonl_result["rows"][0]["inputs.query"] == csv_result["rows"][0]["inputs.query"]
+        assert jsonl_result["rows"][0]["inputs.ground_truth"] == csv_result["rows"][0]["inputs.ground_truth"]
+        assert remove_whitespace(jsonl_result["rows"][0]["inputs.response"]) == remove_whitespace(
+            csv_result["rows"][0]["inputs.response"]
+        )
+        assert (
+            jsonl_row_result_df.shape[0] == len(jsonl_input_data) == csv_row_result_df.shape[0] == len(csv_input_data)
+        )
+
+        assert "outputs.f1_score.f1_score" in jsonl_row_result_df.columns.to_list()
+        assert "outputs.f1_score.f1_score" in csv_row_result_df.columns.to_list()
+
+        assert "f1_score.f1_score" in jsonl_metrics.keys()
+        assert "f1_score.f1_score" in csv_metrics.keys()
+
+        assert jsonl_metrics.get("f1_score.f1_score") == list_mean_nan_safe(
+            jsonl_row_result_df["outputs.f1_score.f1_score"]
+        )
+        assert csv_metrics.get("f1_score.f1_score") == list_mean_nan_safe(
+            csv_row_result_df["outputs.f1_score.f1_score"]
+        )
+
+        assert (
+            jsonl_row_result_df["outputs.f1_score.f1_score"][2]
+            == csv_row_result_df["outputs.f1_score.f1_score"][2]
+            == 1
+        )
+        assert jsonl_result["studio_url"] == csv_result["studio_url"] == None
+
+
+@pytest.mark.usefixtures("recording_injection", "recorded_test")
+class TestUserAgent:
+    """Test suite to validate that the User-Agent header is overridable."""
+
+    @pytest.fixture(scope="session")
+    def user_agent_model_config(self, model_config: AzureOpenAIModelConfiguration) -> AzureOpenAIModelConfiguration:
+
+        if model_config["azure_endpoint"] != "https://Sanitized.api.cognitive.microsoft.com":
+            return model_config
+
+        return AzureOpenAIModelConfiguration(
+            **{**model_config, "azure_endpoint": "https://Sanitized.openai.azure.com/"},
+        )
+
+    @staticmethod
+    def _transparent_mock_method(cls_to_mock, attribute_name: str) -> Mock:
+        """Return a mock that still behaves like the original.
+
+        :param cls_to_mock: The class
+        :param attribute_name: The class' attribute to mock
+        :return: A mock for the attribute
+        :rtype: Mock
+        """
+        # https://stackoverflow.com/a/70886946
+        return patch.object(
+            cls_to_mock, attribute_name, side_effect=getattr(cls_to_mock, attribute_name), autospec=True
+        )
+
+    def test_evaluate_user_agent(self, user_agent_model_config: AzureOpenAIModelConfiguration, data_file: str) -> None:
+        """Validate that user agent can be overriden with evaluate param."""
+        base_user_agent = f"azure-ai-evaluation/{VERSION}"
+        added_useragent = "test/1.0.0"
+
+        expected_user_agent = f"{base_user_agent} {added_useragent}"
+
+        from httpx import AsyncClient, Request
+
+        with self._transparent_mock_method(AsyncClient, "send") as mock:
+            evaluate(
+                data=data_file,
+                evaluators={"fluency": FluencyEvaluator(user_agent_model_config)},
+                user_agent=added_useragent,
+            )
+
+            mock.assert_called()
+
+            for call_args in mock.call_args_list:
+                _, request, *_ = call_args.args
+                request: Request
+
+                # Not checking for strict equality because some evaluators add to the user agent
+                assert expected_user_agent in request.headers["User-Agent"]

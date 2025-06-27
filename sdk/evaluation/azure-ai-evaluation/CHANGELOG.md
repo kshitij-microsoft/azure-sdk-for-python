@@ -1,19 +1,143 @@
 # Release History
 
-## 1.2.0 (Unreleased)
+## 1.9.0 (Unreleased)
 
 ### Features Added
 
+- Added support for Azure Open AI evaluation via `AzureOpenAIScoreModelGrader` class, which serves as a wrapper around Azure Open AI score model configurations. This new grader object can be supplied to the main `evaluate` method as if it were a normal callable evaluator.
+
+
+### Bugs Fixed
+
+- Significant improvements to IntentResolution evaluator. New version has less variance, is nearly 2x faster and consumes fewer tokens.
+
+- Fixed MeteorScoreEvaluator and other threshold-based evaluators returning incorrect binary results due to integer conversion of decimal scores. Previously, decimal scores like 0.9375 were incorrectly converted to integers (0) before threshold comparison, causing them to fail even when above the threshold. [#41415](https://github.com/Azure/azure-sdk-for-python/issues/41415)
+
+## 1.8.0 (2025-05-29)
+
+### Features Added
+
+- Introduces `AttackStrategy.MultiTurn` and `AttackStrategy.Crescendo` to `RedTeam`. These strategies attack the target of a `RedTeam` scan over the course of multi-turn conversations. 
+
+### Bugs Fixed
+- AdversarialSimulator in `ADVERSARIAL_CONVERSATION` mode was broken. It is now fixed.
+
+## 1.7.0 (2025-05-12)
+
+### Bugs Fixed
+- azure-ai-evaluation failed with module not found [#40992](https://github.com/Azure/azure-sdk-for-python/issues/40992)
+
+## 1.6.0 (2025-05-07)
+
+### Features Added
+- New `<evaluator>.binary_aggregate` field added to evaluation result metrics. This field contains the aggregated binary evaluation results for each evaluator, providing a summary of the evaluation outcomes.
+- Added support for Azure Open AI evaluation via 4 new 'grader' classes, which serve as wrappers around Azure Open AI grader configurations. These new grader objects can be supplied to the main `evaluate` method as if they were normal callable evaluators. The new classes are:
+    - AzureOpenAIGrader (general class for experienced users)
+    - AzureOpenAILabelGrader
+    - AzureOpenAIStringCheckGrader
+    - AzureOpenAITextSimilarityGrader
+
 ### Breaking Changes
+- In the experimental RedTeam's scan method, the `data_only` param has been replaced with `skip_evals` and if you do not want data to be uploaded, use the `skip_upload` flag.
+
+### Bugs Fixed
+- Fixed error in `evaluate` where data fields could not contain numeric characters. Previously, a data file with schema:
+    ```
+    "query1": "some query", "response": "some response"
+    ```
+    throws error when passed into `evaluator_config` as `{"evaluator_name": {"column_mapping": {"query": "${data.query1}", "response": "${data.response}"}},}`.
+    Now, users may import data containing fields with numeric characters. 
+
+
+## 1.5.0 (2025-04-04)
+
+### Features Added
+
+- New `RedTeam` agent functionality to assess the safety and resilience of AI systems against adversarial prompt attacks
+
+## 1.4.0 (2025-03-27)
+
+### Features Added
+- Enhanced binary evaluation results with customizable thresholds
+  - Added threshold support for QA and ContentSafety evaluators
+  - Evaluation results now include both the score and threshold values
+  - Configurable threshold parameter allows custom binary classification boundaries
+  - Default thresholds provided for backward compatibility
+  - Quality evaluators use "higher is better" scoring (score ≥ threshold is positive)
+  - Content safety evaluators use "lower is better" scoring (score ≤ threshold is positive)
+- New Built-in evaluator called CodeVulnerabilityEvaluator is added. 
+  - It provides capabilities to identify the following code vulnerabilities.
+    - path-injection
+    - sql-injection
+    - code-injection
+    - stack-trace-exposure
+    - incomplete-url-substring-sanitization
+    - flask-debug
+    - clear-text-logging-sensitive-data
+    - incomplete-hostname-regexp
+    - server-side-unvalidated-url-redirection
+    - weak-cryptographic-algorithm
+    - full-ssrf
+    - bind-socket-all-network-interfaces
+    - client-side-unvalidated-url-redirection
+    - likely-bugs
+    - reflected-xss
+    - clear-text-storage-sensitive-data
+    - tarslip
+    - hardcoded-credentials
+    - insecure-randomness
+  - It also supports multiple coding languages such as (Python, Java, C++, C#, Go, Javascript, SQL)
+  
+- New Built-in evaluator called UngroundedAttributesEvaluator is added.
+  - It evaluates ungrounded inference of human attributes for a given query, response, and context for a single-turn evaluation only, 
+  - where query represents the user query and response represents the AI system response given the provided context. 
+ 
+  - Ungrounded Attributes checks for whether a response is first, ungrounded, and checks if it contains information about protected class 
+  - or emotional state of a person.
+  
+  - It identifies the following attributes:
+    
+    - emotional_state
+    - protected_class
+    - groundedness
+- New Built-in evaluators for Agent Evaluation (Preview)
+  - IntentResolutionEvaluator - Evaluates the intent resolution of an agent's response to a user query.
+  - ResponseCompletenessEvaluator - Evaluates the response completeness of an agent's response to a user query.
+  - TaskAdherenceEvaluator - Evaluates the task adherence of an agent's response to a user query.
+  - ToolCallAccuracyEvaluator - Evaluates the accuracy of tool calls made by an agent in response to a user query.
+
+### Bugs Fixed
+- Fixed error in `GroundednessProEvaluator` when handling non-numeric values like "n/a" returned from the service.
+- Uploading local evaluation results from `evaluate` with the same run name will no longer result in each online run sharing (and bashing) result files.
+
+## 1.3.0 (2025-02-28)
+
+### Breaking Changes
+- Multimodal specific evaluators `ContentSafetyMultimodalEvaluator`, `ViolenceMultimodalEvaluator`, `SexualMultimodalEvaluator`, `SelfHarmMultimodalEvaluator`, `HateUnfairnessMultimodalEvaluator` and `ProtectedMaterialMultimodalEvaluator` has been removed. Please use `ContentSafetyEvaluator`, `ViolenceEvaluator`, `SexualEvaluator`, `SelfHarmEvaluator`, `HateUnfairnessEvaluator` and `ProtectedMaterialEvaluator` instead.
+- Metric name in ProtectedMaterialEvaluator's output is changed from `protected_material.fictional_characters_label` to `protected_material.fictional_characters_defect_rate`. It's now consistent with other evaluator's metric names (ending with `_defect_rate`).
+
+## 1.2.0 (2025-01-27)
+
+### Features Added
+- CSV files are now supported as data file inputs with `evaluate()` API. The CSV file should have a header row with column names that match the `data` and `target` fields in the `evaluate()` method and the filename should be passed as the `data` parameter. Column name 'Conversation' in CSV file is not fully supported yet.  
+
+### Breaking Changes
+- `ViolenceMultimodalEvaluator`, `SexualMultimodalEvaluator`, `SelfHarmMultimodalEvaluator`, `HateUnfairnessMultimodalEvaluator` and `ProtectedMaterialMultimodalEvaluator` will be removed in next release. 
 
 ### Bugs Fixed
 - Removed `[remote]` extra. This is no longer needed when tracking results in Azure AI Studio.
 - Fixed `AttributeError: 'NoneType' object has no attribute 'get'` while running simulator with 1000+ results
 - Fixed the non adversarial simulator to run in task-free mode
+- Content safety evaluators (violence, self harm, sexual, hate/unfairness) return the maximum result as the
+  main score when aggregating per-turn evaluations from a conversation into an overall
+  evaluation score. Other conversation-capable evaluators still default to a mean for aggregation.
+- Fixed bug in non adversarial simulator sample where `tasks` undefined
 
 ### Other Changes
 - Changed minimum required python version to use this package from 3.8 to 3.9
 - Stop dependency on the local promptflow service. No promptflow service will automatically start when running evaluation.
+- Evaluators internally allow for custom aggregation. However, this causes serialization failures if evaluated while the
+  environment variable `AI_EVALS_BATCH_USE_ASYNC` is set to false.
 
 ## 1.1.0 (2024-12-12)
 

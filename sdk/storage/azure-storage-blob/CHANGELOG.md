@@ -1,8 +1,48 @@
 # Release History
 
-## 12.25.0b1 (Unreleased)
+## 12.28.0b1 (Unreleased)
 
 ### Features Added
+
+## 12.27.0b1 (2025-06-12)
+
+This version and all future versions will require Python 3.9+. Python 3.8 is no longer supported.
+
+### Features Added
+- Added support for service version 2025-11-05.
+- Added support for better error handling for copy operations.
+
+## 12.26.0b1 (2025-05-06)
+
+### Features Added
+- Added support for service version 2025-07-05.
+- Added support for OAuth authentication in `ContainerClient`'s `get_container_access_policy` 
+and `set_container_access_policy` APIs.
+- Added support for the keyword `source_token_intent` when copying from file share to blob and 
+authenticated via `TokenCredential` for the following `BlobClient` APIs: `upload_blob_from_url`,
+`start_copy_from_url`, `stage_block_from_url`, `upload_pages_from_url`, and `append_block_from_url`.
+- Added support for `query_blob` in the asynchronous `BlobClient`.
+
+## 12.25.1 (2025-03-27)
+
+### Other Changes
+- Updated dependency for `azure-storage-file-datalake` type hints.
+
+## 12.25.0 (2025-03-11)
+
+### Features Added
+- Stable release of features from 12.25.0b1
+
+## 12.25.0b1 (2025-02-11)
+
+### Features Added
+- Added support for service version 2025-05-05.
+
+## 12.24.1 (2025-01-22)
+
+### Bugs Fixed
+- Fixed an issue where custom transports may encounter `AttributeError` on certain requests.
+- Fixed an issue where `StorageStreamDownloader(chars=-1)` may not return all data.
 
 ## 12.24.0 (2024-11-13)
 

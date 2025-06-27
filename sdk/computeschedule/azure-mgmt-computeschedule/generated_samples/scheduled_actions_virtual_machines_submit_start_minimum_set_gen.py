@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long,useless-suppression
 # coding=utf-8
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -31,25 +32,21 @@ def main():
     )
 
     response = client.scheduled_actions.virtual_machines_submit_start(
-        locationparameter="httzei",
+        locationparameter="hdttrxnbswit",
         request_body={
-            "correlationid": "23480d2f-1dca-4610-afb4-dd25eec1f34",
+            "correlationid": "bvmpxvbd",
             "executionParameters": {},
             "resources": {
                 "ids": [
-                    "/subscriptions/YourSubscriptionId/resourceGroups/YourResourceGroupName/providers/Microsoft.Compute/virtualMachines/testResource4"
+                    "/subscriptions/YourSubscriptionId/resourceGroups/YourResourceGroupName/providers/Microsoft.Compute/virtualMachines/testResource3"
                 ]
             },
-            "schedule": {
-                "deadLine": "2024-07-12T18:06:53.361Z",
-                "deadlineType": "Unknown",
-                "timeZone": "zlcujrtgxtgyik",
-            },
+            "schedule": {"deadlineType": "Unknown"},
         },
     )
     print(response)
 
 
-# x-ms-original-file: 2024-08-15-preview/ScheduledActions_VirtualMachinesSubmitStart_MinimumSet_Gen.json
+# x-ms-original-file: 2025-05-01/ScheduledActions_VirtualMachinesSubmitStart_MinimumSet_Gen.json
 if __name__ == "__main__":
     main()

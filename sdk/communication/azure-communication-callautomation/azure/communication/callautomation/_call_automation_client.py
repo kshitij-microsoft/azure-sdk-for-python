@@ -30,6 +30,7 @@ from ._generated.models import (
 from ._models import (
     CallConnectionProperties,
     RecordingProperties,
+    RecordingResult,
     ChannelAffinity,
     CallInvite,
     AzureCommunicationsRecordingStorage,
@@ -174,6 +175,7 @@ class CallAutomationClient:
         *,
         server_call_id: str,
         cognitive_services_endpoint: Optional[str] = None,
+        backup_cognitive_services_endpoint:Optional[str] = None,
         operation_context: Optional[str] = None,
         media_streaming: Optional['MediaStreamingOptions'] = None,
         transcription: Optional['TranscriptionOptions'] = None,
@@ -188,6 +190,9 @@ class CallAutomationClient:
         :keyword cognitive_services_endpoint:
          The identifier of the Cognitive Service resource assigned to this call.
         :paramtype cognitive_services_endpoint: str or None
+        :keyword backup_cognitive_services_endpoint:
+         The identifier of the Backup Cognitive Service resource assigned to this call.
+        :paramtype backup_cognitive_services_endpoint: str or None
         :keyword operation_context: Value that can be used to track the call and its associated events.
         :paramtype operation_context: str or None
         :keyword media_streaming: Media Streaming Options.
@@ -208,6 +213,7 @@ class CallAutomationClient:
         *,
         group_call_id: str,
         cognitive_services_endpoint: Optional[str] = None,
+        backup_cognitive_services_endpoint:Optional[str] = None,
         operation_context: Optional[str] = None,
         media_streaming: Optional['MediaStreamingOptions'] = None,
         transcription: Optional['TranscriptionOptions'] = None,
@@ -222,6 +228,9 @@ class CallAutomationClient:
         :keyword cognitive_services_endpoint:
          The identifier of the Cognitive Service resource assigned to this call.
         :paramtype cognitive_services_endpoint: str or None
+        :keyword backup_cognitive_services_endpoint:
+         The identifier of the Backup Cognitive Service resource assigned to this call.
+        :paramtype backup_cognitive_services_endpoint: str or None
         :keyword operation_context: Value that can be used to track the call and its associated events.
         :paramtype operation_context: str or None
         :keyword media_streaming: Media Streaming Options.
@@ -242,6 +251,7 @@ class CallAutomationClient:
         *,
         room_id: str,
         cognitive_services_endpoint: Optional[str] = None,
+        backup_cognitive_services_endpoint:Optional[str] = None,
         operation_context: Optional[str] = None,
         media_streaming: Optional['MediaStreamingOptions'] = None,
         transcription: Optional['TranscriptionOptions'] = None,
@@ -256,6 +266,9 @@ class CallAutomationClient:
         :keyword cognitive_services_endpoint:
          The identifier of the Cognitive Service resource assigned to this call.
         :paramtype cognitive_services_endpoint: str or None
+        :keyword backup_cognitive_services_endpoint:
+         The identifier of the Backup Cognitive Service resource assigned to this call.
+        :paramtype backup_cognitive_services_endpoint: str or None
         :keyword operation_context: Value that can be used to track the call and its associated events.
         :paramtype operation_context: str or None
         :keyword media_streaming: Media Streaming Options.
@@ -277,8 +290,10 @@ class CallAutomationClient:
     ) -> CallConnectionProperties:
 
         cognitive_services_endpoint=kwargs.pop("cognitive_services_endpoint", None)
+        backup_cognitive_services_endpoint=kwargs.pop("backup_cognitive_services_endpoint", None)
         call_intelligence_options = CallIntelligenceOptions(
-            cognitive_services_endpoint=cognitive_services_endpoint
+            cognitive_services_endpoint=cognitive_services_endpoint,
+            backup_cognitive_services_endpoint=backup_cognitive_services_endpoint
             ) if cognitive_services_endpoint else None
 
         media_streaming_options : Optional[MediaStreamingOptions] = None
@@ -318,6 +333,7 @@ class CallAutomationClient:
         source_display_name: Optional[str] = None,
         operation_context: Optional[str] = None,
         cognitive_services_endpoint: Optional[str] = None,
+        backup_cognitive_services_endpoint:Optional[str] = None,
         sip_headers: Optional[Dict[str, str]] = None,
         voip_headers: Optional[Dict[str, str]] = None,
         media_streaming: Optional['MediaStreamingOptions'] = None,
@@ -343,6 +359,9 @@ class CallAutomationClient:
         :keyword cognitive_services_endpoint:
          The identifier of the Cognitive Service resource assigned to this call.
         :paramtype cognitive_services_endpoint: str or None
+        :keyword backup_cognitive_services_endpoint:
+         The identifier of the Backup Cognitive Service resource assigned to this call.
+        :paramtype backup_cognitive_services_endpoint: str or None
         :keyword sip_headers: Sip Headers for PSTN Call
         :paramtype sip_headers: Dict[str, str] or None
         :keyword voip_headers: Voip Headers for Voip Call
@@ -372,7 +391,11 @@ class CallAutomationClient:
             user_custom_context = CustomCallingContext(voip_headers=voip_headers, sip_headers=sip_headers)
 
         call_intelligence_options = (
-            CallIntelligenceOptions(cognitive_services_endpoint=cognitive_services_endpoint)
+            CallIntelligenceOptions(
+                cognitive_services_endpoint=cognitive_services_endpoint,
+                backup_cognitive_services_endpoint=backup_cognitive_services_endpoint
+                if backup_cognitive_services_endpoint else None
+            )
             if cognitive_services_endpoint
             else None
         )
@@ -456,11 +479,12 @@ class CallAutomationClient:
         callback_url: str,
         *,
         cognitive_services_endpoint: Optional[str] = None,
+        backup_cognitive_services_endpoint:Optional[str] = None,
+        sip_headers: Optional[Dict[str, str]] = None,
+        voip_headers: Optional[Dict[str, str]] = None,
         operation_context: Optional[str] = None,
         media_streaming: Optional['MediaStreamingOptions'] = None,
         transcription: Optional['TranscriptionOptions'] = None,
-        sip_headers: Optional[Dict[str, str]] = None,
-        voip_headers: Optional[Dict[str, str]] = None,
         **kwargs
     ) -> CallConnectionProperties:
         """Answer incoming call with Azure Communication Service's IncomingCall event
@@ -474,6 +498,13 @@ class CallAutomationClient:
         :keyword cognitive_services_endpoint:
          The endpoint url of the Azure Cognitive Services resource attached.
         :paramtype cognitive_services_endpoint: str
+        :keyword backup_cognitive_services_endpoint:
+         The endpoint url of the Azure Backup Cognitive Services resource attached.
+        :paramtype backup_cognitive_services_endpoint: str
+        :keyword sip_headers: Sip Headers for PSTN Call
+        :paramtype sip_headers: Dict[str, str] or None
+        :keyword voip_headers: Voip Headers for Voip Call
+        :paramtype voip_headers: Dict[str, str] or None
         :keyword operation_context: The operation context.
         :paramtype operation_context: str
         :keyword media_streaming: Media Streaming Options.
@@ -482,10 +513,6 @@ class CallAutomationClient:
         :keyword transcription: Configuration of live transcription.
         :paramtype transcription: ~azure.communication.callautomation.TranscriptionOptions
          or None
-        :keyword sip_headers: Sip Headers for PSTN Call
-        :paramtype sip_headers: Dict[str, str] or None
-        :keyword voip_headers: Voip Headers for Voip Call
-        :paramtype voip_headers: Dict[str, str] or None
         :return: CallConnectionProperties
         :rtype: ~azure.communication.callautomation.CallConnectionProperties
         :raises ~azure.core.exceptions.HttpResponseError:
@@ -498,7 +525,9 @@ class CallAutomationClient:
             )
 
         call_intelligence_options = CallIntelligenceOptions(
-            cognitive_services_endpoint=cognitive_services_endpoint
+            cognitive_services_endpoint=cognitive_services_endpoint,
+            backup_cognitive_services_endpoint=backup_cognitive_services_endpoint
+            if backup_cognitive_services_endpoint else None
             ) if cognitive_services_endpoint else None
 
         answer_call_request = AnswerCallRequest(
@@ -877,6 +906,20 @@ class CallAutomationClient:
             recording_id=recording_id, **kwargs
         )
         return RecordingProperties._from_generated(recording_state_result)  # pylint:disable=protected-access
+
+    @distributed_trace
+    def get_recording_response(self, recording_id: str, **kwargs) -> RecordingResult:
+        """Get call recording result.
+        :param recording_id: The recording id.
+        :type recording_id: str
+        :return: recording result
+        :rtype: ~azure.communication.callautomation.RecordingResult
+        :raises ~azure.core.exceptions.HttpResponseError:
+        """
+        recording_result = self._call_recording_client.get_recording_result(
+            recording_id=recording_id, **kwargs
+        )
+        return RecordingResult._from_generated(recording_result)  # pylint:disable=protected-access
 
     @distributed_trace
     def download_recording(

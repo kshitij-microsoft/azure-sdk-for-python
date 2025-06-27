@@ -6,7 +6,7 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 import pytest
-from azure.mgmt.containerservice.aio import ContainerServiceClient
+from azure.mgmt.containerservice.v2025_04_01.aio import ContainerServiceClient
 
 from devtools_testutils import AzureMgmtRecordedTestCase, RandomNameResourceGroupPreparer
 from devtools_testutils.aio import recorded_by_proxy_async
@@ -21,10 +21,10 @@ class TestContainerServiceTrustedAccessRolesOperationsAsync(AzureMgmtRecordedTes
 
     @RandomNameResourceGroupPreparer(location=AZURE_LOCATION)
     @recorded_by_proxy_async
-    async def test_list(self, resource_group):
+    async def test_trusted_access_roles_list(self, resource_group):
         response = self.client.trusted_access_roles.list(
             location="str",
-            api_version="2024-09-01",
+            api_version="2025-04-01",
         )
         result = [r async for r in response]
         # please add some check logic here by yourself

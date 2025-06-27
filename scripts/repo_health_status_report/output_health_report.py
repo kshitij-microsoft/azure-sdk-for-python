@@ -233,7 +233,10 @@ def get_github_total_issue_link(label: str) -> str:
 
 
 def is_package_inactive(package_path: str) -> bool:
-    return INACTIVE_CLASSIFIER in ParsedSetup.from_path(package_path).classifiers
+    setup_py = os.path.join(package_path, "setup.py")
+    pyproject_toml = os.path.join(package_path, "pyproject.toml")
+    has_project_file = os.path.exists(setup_py) or os.path.exists(pyproject_toml)
+    return not has_project_file or INACTIVE_CLASSIFIER in ParsedSetup.from_path(package_path).classifiers
 
 
 def skip_package(package_name: str) -> bool:
@@ -651,7 +654,11 @@ def map_codeowners_to_label(
             if len(parts) > 3:
                 # we don't distinguish past package level for SLA
                 continue
-            service_directory = parts[0]
+            try:
+                service_directory = parts[0]
+            except IndexError:
+                # it was a single file
+                continue
             tracked_labels[label] = service_directory
             try:
                 library = parts[1]

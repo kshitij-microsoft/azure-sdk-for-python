@@ -96,6 +96,28 @@ class ListSharesIncludeType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     DELETED = "deleted"
 
 
+class ModeCopyMode(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """ModeCopyMode."""
+
+    SOURCE = "source"
+    OVERRIDE = "override"
+
+
+class NfsFileType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """NfsFileType."""
+
+    REGULAR = "Regular"
+    DIRECTORY = "Directory"
+    SYM_LINK = "SymLink"
+
+
+class OwnerCopyMode(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """OwnerCopyMode."""
+
+    SOURCE = "source"
+    OVERRIDE = "override"
+
+
 class PermissionCopyModeType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """PermissionCopyModeType."""
 
@@ -198,3 +220,4 @@ class StorageErrorCode(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     AUTHORIZATION_SERVICE_MISMATCH = "AuthorizationServiceMismatch"
     AUTHORIZATION_RESOURCE_TYPE_MISMATCH = "AuthorizationResourceTypeMismatch"
     FEATURE_VERSION_MISMATCH = "FeatureVersionMismatch"
+    SHARE_SNAPSHOT_NOT_FOUND = "ShareSnapshotNotFound"

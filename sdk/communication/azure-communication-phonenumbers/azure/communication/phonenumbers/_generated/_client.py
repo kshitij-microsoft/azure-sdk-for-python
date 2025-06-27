@@ -8,6 +8,7 @@
 
 from copy import deepcopy
 from typing import Any
+from typing_extensions import Self
 
 from azure.core import PipelineClient
 from azure.core.pipeline import policies
@@ -15,11 +16,11 @@ from azure.core.rest import HttpRequest, HttpResponse
 
 from . import models as _models
 from ._configuration import PhoneNumbersClientConfiguration
-from ._serialization import Deserializer, Serializer
+from ._utils.serialization import Deserializer, Serializer
 from .operations import PhoneNumbersOperations
 
 
-class PhoneNumbersClient:  # pylint: disable=client-accepts-api-version-keyword
+class PhoneNumbersClient:
     """The phone numbers client uses Azure Communication Services to purchase and manage phone
     numbers.
 
@@ -28,8 +29,8 @@ class PhoneNumbersClient:  # pylint: disable=client-accepts-api-version-keyword
     :param endpoint: The communication resource, for example
      https://resourcename.communication.azure.com. Required.
     :type endpoint: str
-    :keyword api_version: Api Version. Default value is "2024-03-01-preview". Note that overriding
-     this default value may result in unsupported behavior.
+    :keyword api_version: Api Version. Default value is "2025-04-01". Note that overriding this
+     default value may result in unsupported behavior.
     :paramtype api_version: str
     :keyword int polling_interval: Default waiting time between two polls for LRO operations if no
      Retry-After header is present.
@@ -40,6 +41,7 @@ class PhoneNumbersClient:  # pylint: disable=client-accepts-api-version-keyword
     ) -> None:
         _endpoint = "{endpoint}"
         self._config = PhoneNumbersClientConfiguration(endpoint=endpoint, **kwargs)
+
         _policies = kwargs.pop("policies", None)
         if _policies is None:
             _policies = [
@@ -95,7 +97,7 @@ class PhoneNumbersClient:  # pylint: disable=client-accepts-api-version-keyword
     def close(self) -> None:
         self._client.close()
 
-    def __enter__(self) -> "PhoneNumbersClient":
+    def __enter__(self) -> Self:
         self._client.__enter__()
         return self
 

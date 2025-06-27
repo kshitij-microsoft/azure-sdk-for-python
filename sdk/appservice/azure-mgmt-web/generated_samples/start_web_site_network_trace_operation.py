@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long,useless-suppression
 # coding=utf-8
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -9,6 +10,7 @@
 from azure.identity import DefaultAzureCredential
 
 from azure.mgmt.web import WebSiteManagementClient
+
 """
 # PREREQUISITES
     pip install azure-identity
@@ -21,22 +23,21 @@ from azure.mgmt.web import WebSiteManagementClient
     AZURE_CLIENT_SECRET. For more info about how to get the value, please see:
     https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal
 """
+
+
 def main():
     client = WebSiteManagementClient(
         credential=DefaultAzureCredential(),
         subscription_id="34adfa4f-cedf-4dc0-ba29-b6d1a69ab345",
     )
 
-    response = client.web_apps.begin_start_network_trace(
-        resource_group_name='testrg123',
-        name='SampleApp',
+    response = client.web_apps.begin_start_web_site_network_trace_operation(
+        resource_group_name="testrg123",
+        name="SampleApp",
     ).result()
     print(response)
 
-# x-ms-original-file: specification/web/resource-manager/Microsoft.Web/stable/2024-04-01/examples/StartWebSiteNetworkTraceOperation.json
+
+# x-ms-original-file: specification/web/resource-manager/Microsoft.Web/stable/2024-11-01/examples/StartWebSiteNetworkTraceOperation.json
 if __name__ == "__main__":
-    main()
-ame__ == "__main__":
-    main()
-ain__":
     main()

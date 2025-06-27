@@ -1,5 +1,5 @@
-# coding=utf-8
 # pylint: disable=too-many-lines
+# coding=utf-8
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,10 +9,9 @@
 
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
-from ... import _serialization
+from .._utils import serialization as _serialization
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import,ungrouped-imports
     from .. import models as _models
 
 
@@ -45,12 +44,12 @@ class SubResource(_serialization.Model):
     def __init__(self, **kwargs: Any) -> None:
         """ """
         super().__init__(**kwargs)
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
 
 
-class AgentPool(SubResource):  # pylint: disable=too-many-instance-attributes
+class AgentPool(SubResource):
     """Agent Pool.
 
     Variables are only populated by the server, and will be ignored when sending a request.
@@ -334,7 +333,7 @@ class AgentPool(SubResource):  # pylint: disable=too-many-instance-attributes
         self.type_properties_type = type_properties_type
         self.mode = mode
         self.orchestrator_version = orchestrator_version
-        self.provisioning_state = None
+        self.provisioning_state: Optional[str] = None
         self.availability_zones = availability_zones
         self.enable_node_public_ip = enable_node_public_ip
         self.scale_set_priority = scale_set_priority
@@ -389,9 +388,9 @@ class AgentPoolAvailableVersions(_serialization.Model):
          list[~azure.mgmt.containerservice.v2020_03_01.models.AgentPoolAvailableVersionsPropertiesAgentPoolVersionsItem]
         """
         super().__init__(**kwargs)
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
         self.agent_pool_versions = agent_pool_versions
 
 
@@ -461,7 +460,7 @@ class AgentPoolListResult(_serialization.Model):
         """
         super().__init__(**kwargs)
         self.value = value
-        self.next_link = None
+        self.next_link: Optional[str] = None
 
 
 class AgentPoolUpgradeProfile(_serialization.Model):
@@ -523,9 +522,9 @@ class AgentPoolUpgradeProfile(_serialization.Model):
          list[~azure.mgmt.containerservice.v2020_03_01.models.AgentPoolUpgradeProfilePropertiesUpgradesItem]
         """
         super().__init__(**kwargs)
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
         self.kubernetes_version = kubernetes_version
         self.os_type = os_type
         self.upgrades = upgrades
@@ -559,7 +558,7 @@ class AgentPoolUpgradeProfilePropertiesUpgradesItem(_serialization.Model):  # py
         self.is_preview = is_preview
 
 
-class BaseManagedCluster(_serialization.Model):  # pylint: disable=too-many-instance-attributes
+class BaseManagedCluster(_serialization.Model):
     """BaseManagedCluster.
 
     Variables are only populated by the server, and will be ignored when sending a request.
@@ -739,12 +738,12 @@ class BaseManagedCluster(_serialization.Model):  # pylint: disable=too-many-inst
         """
         super().__init__(**kwargs)
         self.identity = identity
-        self.provisioning_state = None
-        self.max_agent_pools = None
+        self.provisioning_state: Optional[str] = None
+        self.max_agent_pools: Optional[int] = None
         self.kubernetes_version = kubernetes_version
         self.dns_prefix = dns_prefix
-        self.fqdn = None
-        self.private_fqdn = None
+        self.fqdn: Optional[str] = None
+        self.private_fqdn: Optional[str] = None
         self.agent_pool_profiles = agent_pool_profiles
         self.linux_profile = linux_profile
         self.windows_profile = windows_profile
@@ -1044,7 +1043,7 @@ class ContainerServiceMasterProfile(_serialization.Model):
         self.vnet_subnet_id = vnet_subnet_id
         self.first_consecutive_static_ip = first_consecutive_static_ip
         self.storage_profile = storage_profile
-        self.fqdn = None
+        self.fqdn: Optional[str] = None
 
 
 class ContainerServiceNetworkProfile(_serialization.Model):
@@ -1252,7 +1251,7 @@ class ContainerServiceVMDiagnostics(_serialization.Model):
         """
         super().__init__(**kwargs)
         self.enabled = enabled
-        self.storage_uri = None
+        self.storage_uri: Optional[str] = None
 
 
 class CredentialResult(_serialization.Model):
@@ -1279,8 +1278,8 @@ class CredentialResult(_serialization.Model):
     def __init__(self, **kwargs: Any) -> None:
         """ """
         super().__init__(**kwargs)
-        self.name = None
-        self.value = None
+        self.name: Optional[str] = None
+        self.value: Optional[bytes] = None
 
 
 class CredentialResults(_serialization.Model):
@@ -1303,7 +1302,7 @@ class CredentialResults(_serialization.Model):
     def __init__(self, **kwargs: Any) -> None:
         """ """
         super().__init__(**kwargs)
-        self.kubeconfigs = None
+        self.kubeconfigs: Optional[List["_models.CredentialResult"]] = None
 
 
 class Resource(_serialization.Model):
@@ -1348,14 +1347,14 @@ class Resource(_serialization.Model):
         :paramtype tags: dict[str, str]
         """
         super().__init__(**kwargs)
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
         self.location = location
         self.tags = tags
 
 
-class ManagedCluster(Resource, BaseManagedCluster):  # pylint: disable=too-many-instance-attributes
+class ManagedCluster(Resource, BaseManagedCluster):
     """Managed cluster.
 
     Variables are only populated by the server, and will be ignored when sending a request.
@@ -1589,12 +1588,12 @@ class ManagedCluster(Resource, BaseManagedCluster):  # pylint: disable=too-many-
             **kwargs
         )
         self.identity = identity
-        self.provisioning_state = None
-        self.max_agent_pools = None
+        self.provisioning_state: Optional[str] = None
+        self.max_agent_pools: Optional[int] = None
         self.kubernetes_version = kubernetes_version
         self.dns_prefix = dns_prefix
-        self.fqdn = None
-        self.private_fqdn = None
+        self.fqdn: Optional[str] = None
+        self.private_fqdn: Optional[str] = None
         self.agent_pool_profiles = agent_pool_profiles
         self.linux_profile = linux_profile
         self.windows_profile = windows_profile
@@ -1610,9 +1609,9 @@ class ManagedCluster(Resource, BaseManagedCluster):  # pylint: disable=too-many-
         self.disk_encryption_set_id = disk_encryption_set_id
         self.identity_profile = identity_profile
         self.sku = sku
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
         self.location = location
         self.tags = tags
 
@@ -1774,7 +1773,7 @@ class ManagedClusterAddonProfile(_serialization.Model):
         super().__init__(**kwargs)
         self.enabled = enabled
         self.config = config
-        self.identity = None
+        self.identity: Optional["_models.ManagedClusterAddonProfileIdentity"] = None
 
 
 class UserAssignedIdentity(_serialization.Model):
@@ -1828,7 +1827,7 @@ class ManagedClusterAddonProfileIdentity(UserAssignedIdentity):
     """
 
 
-class ManagedClusterAgentPoolProfileProperties(_serialization.Model):  # pylint: disable=too-many-instance-attributes
+class ManagedClusterAgentPoolProfileProperties(_serialization.Model):
     """Properties for the container service agent pool profile.
 
     Variables are only populated by the server, and will be ignored when sending a request.
@@ -2097,7 +2096,7 @@ class ManagedClusterAgentPoolProfileProperties(_serialization.Model):  # pylint:
         self.type = type
         self.mode = mode
         self.orchestrator_version = orchestrator_version
-        self.provisioning_state = None
+        self.provisioning_state: Optional[str] = None
         self.availability_zones = availability_zones
         self.enable_node_public_ip = enable_node_public_ip
         self.scale_set_priority = scale_set_priority
@@ -2108,9 +2107,7 @@ class ManagedClusterAgentPoolProfileProperties(_serialization.Model):  # pylint:
         self.node_taints = node_taints
 
 
-class ManagedClusterAgentPoolProfile(
-    ManagedClusterAgentPoolProfileProperties
-):  # pylint: disable=too-many-instance-attributes
+class ManagedClusterAgentPoolProfile(ManagedClusterAgentPoolProfileProperties):
     """Profile for the container service agent pool.
 
     Variables are only populated by the server, and will be ignored when sending a request.
@@ -2473,8 +2470,8 @@ class ManagedClusterIdentity(_serialization.Model):
         :paramtype type: str or ~azure.mgmt.containerservice.v2020_03_01.models.ResourceIdentityType
         """
         super().__init__(**kwargs)
-        self.principal_id = None
-        self.tenant_id = None
+        self.principal_id: Optional[str] = None
+        self.tenant_id: Optional[str] = None
         self.type = type
 
 
@@ -2505,7 +2502,7 @@ class ManagedClusterListResult(_serialization.Model):
         """
         super().__init__(**kwargs)
         self.value = value
-        self.next_link = None
+        self.next_link: Optional[str] = None
 
 
 class ManagedClusterLoadBalancerProfile(_serialization.Model):
@@ -2964,9 +2961,9 @@ class ManagedClusterUpgradeProfile(_serialization.Model):
          list[~azure.mgmt.containerservice.v2020_03_01.models.ManagedClusterPoolUpgradeProfile]
         """
         super().__init__(**kwargs)
-        self.id = None
-        self.name = None
-        self.type = None
+        self.id: Optional[str] = None
+        self.name: Optional[str] = None
+        self.type: Optional[str] = None
         self.control_plane_profile = control_plane_profile
         self.agent_pool_profiles = agent_pool_profiles
 
@@ -2976,20 +2973,20 @@ class ManagedClusterWindowsProfile(_serialization.Model):
 
     All required parameters must be populated in order to send to server.
 
-    :ivar admin_username: Specifies the name of the administrator account. :code:`<br>`:code:`<br>`
-     **restriction:** Cannot end in "." :code:`<br>`:code:`<br>` **Disallowed values:**
-     "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1",
-     "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest",
-     "john", "owner", "root", "server", "sql", "support", "support_388945a0", "sys", "test2",
-     "test3", "user4", "user5". :code:`<br>`:code:`<br>` **Minimum-length:** 1 character
-     :code:`<br>`:code:`<br>` **Max-length:** 20 characters. Required.
+    :ivar admin_username: Specifies the name of the administrator account. :code:`<br>`\\
+     :code:`<br>` **restriction:** Cannot end in "." :code:`<br>`\\ :code:`<br>` **Disallowed
+     values:** "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3",
+     "admin1", "1", "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console", "david",
+     "guest", "john", "owner", "root", "server", "sql", "support", "support_388945a0", "sys",
+     "test2", "test3", "user4", "user5". :code:`<br>`\\ :code:`<br>` **Minimum-length:** 1 character
+     :code:`<br>`\\ :code:`<br>` **Max-length:** 20 characters. Required.
     :vartype admin_username: str
-    :ivar admin_password: Specifies the password of the administrator account.
-     :code:`<br>`:code:`<br>` **Minimum-length:** 8 characters :code:`<br>`:code:`<br>`
-     **Max-length:** 123 characters :code:`<br>`:code:`<br>` **Complexity requirements:** 3 out of 4
-     conditions below need to be fulfilled :code:`<br>` Has lower characters :code:`<br>`Has upper
-     characters :code:`<br>` Has a digit :code:`<br>` Has a special character (Regex match [\\W_])
-     :code:`<br>`:code:`<br>` **Disallowed values:** "abc@123", "P@$$w0rd", "P@ssw0rd",
+    :ivar admin_password: Specifies the password of the administrator account. :code:`<br>`\\
+     :code:`<br>` **Minimum-length:** 8 characters :code:`<br>`\\ :code:`<br>` **Max-length:** 123
+     characters :code:`<br>`\\ :code:`<br>` **Complexity requirements:** 3 out of 4 conditions below
+     need to be fulfilled :code:`<br>` Has lower characters :code:`<br>`Has upper characters
+     :code:`<br>` Has a digit :code:`<br>` Has a special character (Regex match [\\W_])
+     :code:`<br>`\\ :code:`<br>` **Disallowed values:** "abc@123", "P@$$w0rd", "P@ssw0rd",
      "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!".
     :vartype admin_password: str
     """
@@ -3005,20 +3002,20 @@ class ManagedClusterWindowsProfile(_serialization.Model):
 
     def __init__(self, *, admin_username: str, admin_password: Optional[str] = None, **kwargs: Any) -> None:
         """
-        :keyword admin_username: Specifies the name of the administrator account.
-         :code:`<br>`:code:`<br>` **restriction:** Cannot end in "." :code:`<br>`:code:`<br>`
-         **Disallowed values:** "administrator", "admin", "user", "user1", "test", "user2", "test1",
-         "user3", "admin1", "1", "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console",
-         "david", "guest", "john", "owner", "root", "server", "sql", "support", "support_388945a0",
-         "sys", "test2", "test3", "user4", "user5". :code:`<br>`:code:`<br>` **Minimum-length:** 1
-         character :code:`<br>`:code:`<br>` **Max-length:** 20 characters. Required.
+        :keyword admin_username: Specifies the name of the administrator account. :code:`<br>`\\
+         :code:`<br>` **restriction:** Cannot end in "." :code:`<br>`\\ :code:`<br>` **Disallowed
+         values:** "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3",
+         "admin1", "1", "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console", "david",
+         "guest", "john", "owner", "root", "server", "sql", "support", "support_388945a0", "sys",
+         "test2", "test3", "user4", "user5". :code:`<br>`\\ :code:`<br>` **Minimum-length:** 1 character
+         :code:`<br>`\\ :code:`<br>` **Max-length:** 20 characters. Required.
         :paramtype admin_username: str
-        :keyword admin_password: Specifies the password of the administrator account.
-         :code:`<br>`:code:`<br>` **Minimum-length:** 8 characters :code:`<br>`:code:`<br>`
-         **Max-length:** 123 characters :code:`<br>`:code:`<br>` **Complexity requirements:** 3 out of 4
-         conditions below need to be fulfilled :code:`<br>` Has lower characters :code:`<br>`Has upper
-         characters :code:`<br>` Has a digit :code:`<br>` Has a special character (Regex match [\\W_])
-         :code:`<br>`:code:`<br>` **Disallowed values:** "abc@123", "P@$$w0rd", "P@ssw0rd",
+        :keyword admin_password: Specifies the password of the administrator account. :code:`<br>`\\
+         :code:`<br>` **Minimum-length:** 8 characters :code:`<br>`\\ :code:`<br>` **Max-length:** 123
+         characters :code:`<br>`\\ :code:`<br>` **Complexity requirements:** 3 out of 4 conditions below
+         need to be fulfilled :code:`<br>` Has lower characters :code:`<br>`Has upper characters
+         :code:`<br>` Has a digit :code:`<br>` Has a special character (Regex match [\\W_])
+         :code:`<br>`\\ :code:`<br>` **Disallowed values:** "abc@123", "P@$$w0rd", "P@ssw0rd",
          "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!".
         :paramtype admin_password: str
         """
@@ -3047,7 +3044,7 @@ class OperationListResult(_serialization.Model):
     def __init__(self, **kwargs: Any) -> None:
         """ """
         super().__init__(**kwargs)
-        self.value = None
+        self.value: Optional[List["_models.OperationValue"]] = None
 
 
 class OperationValue(_serialization.Model):
@@ -3090,12 +3087,12 @@ class OperationValue(_serialization.Model):
     def __init__(self, **kwargs: Any) -> None:
         """ """
         super().__init__(**kwargs)
-        self.origin = None
-        self.name = None
-        self.operation = None
-        self.resource = None
-        self.description = None
-        self.provider = None
+        self.origin: Optional[str] = None
+        self.name: Optional[str] = None
+        self.operation: Optional[str] = None
+        self.resource: Optional[str] = None
+        self.description: Optional[str] = None
+        self.provider: Optional[str] = None
 
 
 class ResourceReference(_serialization.Model):

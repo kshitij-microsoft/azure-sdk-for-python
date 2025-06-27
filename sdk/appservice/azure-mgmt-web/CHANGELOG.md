@@ -1,8 +1,33 @@
 # Release History
 
-## 0.0.0 (2024-11-18)
+## 9.0.0 (2025-06-16)
 
-change log generation failed!!!
+### Features Added
+
+  - Added operation WebSiteManagementClientOperationsMixin.regional_check_name_availability
+  - Added operation group SiteCertificatesOperations
+  - Model AppServicePlan has a new parameter async_scaling_enabled
+  - Model Site has a new parameter client_affinity_partitioning_enabled
+  - Model Site has a new parameter client_affinity_proxy_enabled
+  - Model Site has a new parameter outbound_vnet_routing
+  - Model Site has a new parameter ssh_enabled
+  - Model SiteConfig has a new parameter http20_proxy_flag
+  - Model SiteConfigResource has a new parameter http20_proxy_flag
+  - Model SiteContainer has a new parameter inherit_app_settings_and_connection_strings
+  - Model SitePatchResource has a new parameter client_affinity_proxy_enabled
+
+### Breaking Changes
+
+  - Model Site no longer has parameter vnet_backup_restore_enabled
+  - Model Site no longer has parameter vnet_content_share_enabled
+  - Model Site no longer has parameter vnet_image_pull_enabled
+  - Model Site no longer has parameter vnet_route_all_enabled
+
+## 8.0.0 (2025-01-23)
+
+### Breaking Changes
+  
+  - Removed subfolders of some unused Api-Versions for smaller package size. If your application requires a specific and non-latest Api-Version, it's recommended to pin this package to the previous released version; If your application always only use latest Api-Version, please ignore this change.
 
 ## 7.3.1 (2024-08-19)
 

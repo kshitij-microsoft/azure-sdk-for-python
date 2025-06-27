@@ -1,8 +1,46 @@
 # Release History
 
-## 12.21.0b1 (Unreleased)
+## 12.24.0b1 (Unreleased)
 
 ### Features Added
+
+## 12.23.0b1 (2025-06-12)
+
+This version and all future versions will require Python 3.9+. Python 3.8 is no longer supported.
+
+### Features Added
+- Added support for service version 2025-11-05.
+- Added support for better error handling for copy operations.
+
+## 12.22.0b1 (2025-05-06)
+
+### Features Added
+- Added support for service version 2025-07-05.
+- Added new `create_symbolic_link` and `get_symbolic_link` APIs to `ShareFileClient` to 
+create/get symbolic links to specified files and is only supported for the `NFS` protocol.
+
+## 12.21.0 (2025-03-11)
+
+### Features Added
+- Stable release of features from 12.21.0b1
+
+## 12.21.0b1 (2025-02-11)
+
+### Features Added
+- Added support for service version 2025-05-05.
+- Added support for NFS shares to existing APIs. This includes adding `owner`, `group`, and `file_mode` options to
+`create_file`, `create_directory`, `set_http_headers` (File and Directory), `DirectoryProperties`, and `FileProperties`.
+- Added new `create_hard_link` method to `ShareFileClient` to create hard links to specified
+files and is only supported for the `NFS` protocol.
+- `create_file`, `create_directory`, and `set_http_headers` (File and Directory) APIs no longer send 
+request headers `x-ms-file-permission-key`, `x-ms-file-attributes`, `x-ms-file-creation-time`, and 
+`x-ms-file-last-write-time` by default. The request headers have been optional in the REST API since 
+service version 2021-06-08. The default behavior of these APIs remain the same.
+
+## 12.20.1 (2025-01-22)
+
+### Bugs Fixed
+- Fixed an issue where custom transports may encounter `AttributeError` on certain requests.
 
 ## 12.20.0 (2024-11-13)
 

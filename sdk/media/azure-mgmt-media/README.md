@@ -1,5 +1,9 @@
 # Microsoft Azure SDK for Python
 
+Please note, this package has been deprecated and will no longer be maintained after 06/30/2024.
+Refer to [Azure Media Services retirement guide](https://learn.microsoft.com/azure/media-services/latest/azure-media-services-retirement) for more retirement details and how to migrate to the new services.
+Refer to our deprecation policy (https://aka.ms/azsdk/support-policies) for more details.
+
 This is the Microsoft Azure Media Services Client Library.
 This package has been tested with Python 3.7+.
 For a more complete view of Azure libraries, see the [azure sdk python release](https://aka.ms/azsdk/python/all).
@@ -60,4 +64,4 @@ If you encounter any bugs or have suggestions, please file an issue in the
 section of the project. 
 
 
-![Impressions](https://azure-sdk-impressions.azurewebsites.net/api/impressions/azure-sdk-for-python%2Fazure-mgmt-media%2FREADME.png)
+

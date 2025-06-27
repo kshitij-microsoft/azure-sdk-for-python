@@ -6,7 +6,7 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 import pytest
-from azure.mgmt.containerservice import ContainerServiceClient
+from azure.mgmt.containerservice.v2025_04_01 import ContainerServiceClient
 
 from devtools_testutils import AzureMgmtRecordedTestCase, RandomNameResourceGroupPreparer, recorded_by_proxy
 
@@ -20,7 +20,7 @@ class TestContainerServiceResolvePrivateLinkServiceIdOperations(AzureMgmtRecorde
 
     @RandomNameResourceGroupPreparer(location=AZURE_LOCATION)
     @recorded_by_proxy
-    def test_post(self, resource_group):
+    def test_resolve_private_link_service_id_post(self, resource_group):
         response = self.client.resolve_private_link_service_id.post(
             resource_group_name=resource_group.name,
             resource_name="str",
@@ -32,7 +32,7 @@ class TestContainerServiceResolvePrivateLinkServiceIdOperations(AzureMgmtRecorde
                 "requiredMembers": ["str"],
                 "type": "str",
             },
-            api_version="2024-09-01",
+            api_version="2025-04-01",
         )
 
         # please add some check logic here by yourself

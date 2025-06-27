@@ -30,7 +30,13 @@ class TestComputeScheduleMgmtScheduledActionsOperations(AzureMgmtRecordedTestCas
                     "retryPolicy": {"retryCount": 0, "retryWindowInMinutes": 0},
                 },
                 "resources": {"ids": ["str"]},
-                "schedule": {"deadLine": "2020-02-20 00:00:00", "deadlineType": "str", "timeZone": "str"},
+                "schedule": {
+                    "deadlineType": "str",
+                    "deadLine": "2020-02-20 00:00:00",
+                    "deadline": "2020-02-20 00:00:00",
+                    "timeZone": "str",
+                    "timezone": "str",
+                },
             },
         )
 
@@ -49,7 +55,13 @@ class TestComputeScheduleMgmtScheduledActionsOperations(AzureMgmtRecordedTestCas
                     "retryPolicy": {"retryCount": 0, "retryWindowInMinutes": 0},
                 },
                 "resources": {"ids": ["str"]},
-                "schedule": {"deadLine": "2020-02-20 00:00:00", "deadlineType": "str", "timeZone": "str"},
+                "schedule": {
+                    "deadlineType": "str",
+                    "deadLine": "2020-02-20 00:00:00",
+                    "deadline": "2020-02-20 00:00:00",
+                    "timeZone": "str",
+                    "timezone": "str",
+                },
             },
         )
 
@@ -68,7 +80,13 @@ class TestComputeScheduleMgmtScheduledActionsOperations(AzureMgmtRecordedTestCas
                     "retryPolicy": {"retryCount": 0, "retryWindowInMinutes": 0},
                 },
                 "resources": {"ids": ["str"]},
-                "schedule": {"deadLine": "2020-02-20 00:00:00", "deadlineType": "str", "timeZone": "str"},
+                "schedule": {
+                    "deadlineType": "str",
+                    "deadLine": "2020-02-20 00:00:00",
+                    "deadline": "2020-02-20 00:00:00",
+                    "timeZone": "str",
+                    "timezone": "str",
+                },
             },
         )
 
@@ -123,6 +141,48 @@ class TestComputeScheduleMgmtScheduledActionsOperations(AzureMgmtRecordedTestCas
                     "retryPolicy": {"retryCount": 0, "retryWindowInMinutes": 0},
                 },
                 "resources": {"ids": ["str"]},
+            },
+        )
+
+        # please add some check logic here by yourself
+        # ...
+
+    @RandomNameResourceGroupPreparer(location=AZURE_LOCATION)
+    @recorded_by_proxy
+    def test_scheduled_actions_virtual_machines_execute_create(self, resource_group):
+        response = self.client.scheduled_actions.virtual_machines_execute_create(
+            locationparameter="str",
+            request_body={
+                "executionParameters": {
+                    "optimizationPreference": "str",
+                    "retryPolicy": {"retryCount": 0, "retryWindowInMinutes": 0},
+                },
+                "resourceConfigParameters": {
+                    "resourceCount": 0,
+                    "baseProfile": {"str": {}},
+                    "resourceOverrides": [{"str": {}}],
+                    "resourcePrefix": "str",
+                },
+                "correlationid": "str",
+            },
+        )
+
+        # please add some check logic here by yourself
+        # ...
+
+    @RandomNameResourceGroupPreparer(location=AZURE_LOCATION)
+    @recorded_by_proxy
+    def test_scheduled_actions_virtual_machines_execute_delete(self, resource_group):
+        response = self.client.scheduled_actions.virtual_machines_execute_delete(
+            locationparameter="str",
+            request_body={
+                "executionParameters": {
+                    "optimizationPreference": "str",
+                    "retryPolicy": {"retryCount": 0, "retryWindowInMinutes": 0},
+                },
+                "resources": {"ids": ["str"]},
+                "correlationid": "str",
+                "forceDeletion": bool,
             },
         )
 

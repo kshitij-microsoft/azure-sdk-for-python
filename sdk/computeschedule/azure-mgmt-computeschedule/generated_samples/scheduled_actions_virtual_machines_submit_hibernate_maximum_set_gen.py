@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long,useless-suppression
 # coding=utf-8
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -31,12 +32,12 @@ def main():
     )
 
     response = client.scheduled_actions.virtual_machines_submit_hibernate(
-        locationparameter="bgxeayimbxqzev",
+        locationparameter="sgwaluihhyqoxbfskudgqcikbns",
         request_body={
-            "correlationid": "23519o2f-1dca-4610-afb4-dd25eec1f34",
+            "correlationid": "htqivutynuoslvbp",
             "executionParameters": {
                 "optimizationPreference": "Cost",
-                "retryPolicy": {"retryCount": 30, "retryWindowInMinutes": 27},
+                "retryPolicy": {"retryCount": 25, "retryWindowInMinutes": 4},
             },
             "resources": {
                 "ids": [
@@ -44,15 +45,17 @@ def main():
                 ]
             },
             "schedule": {
-                "deadLine": "2024-07-12T18:06:53.361Z",
+                "deadLine": "2025-04-15T19:47:04.403Z",
+                "deadline": "2025-04-15T19:47:04.403Z",
                 "deadlineType": "Unknown",
-                "timeZone": "zlcujrtgxtgyik",
+                "timeZone": "upnmayfebiadztdktxzq",
+                "timezone": "qacufsmctpgjozovlsihrzoctatcsj",
             },
         },
     )
     print(response)
 
 
-# x-ms-original-file: 2024-08-15-preview/ScheduledActions_VirtualMachinesSubmitHibernate_MaximumSet_Gen.json
+# x-ms-original-file: 2025-05-01/ScheduledActions_VirtualMachinesSubmitHibernate_MaximumSet_Gen.json
 if __name__ == "__main__":
     main()

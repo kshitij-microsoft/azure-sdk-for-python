@@ -4,11 +4,10 @@ extends:
     template: /eng/pipelines/templates/stages/archetype-sdk-tests.yml
     parameters:
       ServiceDirectory: keyvault
+      PersistOidcToken: true
       BuildTargetingString: "azure-keyvault-administration"
       JobName: azure_keyvault_administration
-      SupportedClouds: 'Public'
       TestTimeoutInMinutes: 240
-      # Since we don't use HSMs in USGov or China clouds, just run Admin tests in Public.
       CloudConfig:
         Public:
           Location: 'westus2'

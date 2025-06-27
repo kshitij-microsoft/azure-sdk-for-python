@@ -132,7 +132,7 @@ class ArtifactCache:
 
         # Organization URL has two format, https://dev.azure.com/{organization} and
         # https://{organization}.visualstudio.com
-        # https://docs.microsoft.com/en-us/azure/devops/extend/develop/work-with-urls?view=azure-devops&tabs=http
+        # https://learn.microsoft.com/azure/devops/extend/develop/work-with-urls?view=azure-devops&tabs=http
         if "dev.azure.com" in origin_url:
             regex = r"^https:\/\/\w*@?dev\.azure\.com\/(\w*)\/(\w*)"
             results = re.findall(regex, origin_url)
@@ -239,7 +239,8 @@ class ArtifactCache:
             try:
                 self._redirect_artifacts_tool_path(organization)
             except Exception as e:  # pylint: disable=W0718
-                _logger.warning("Redirect artifacts tool path failed, details: %s", e)
+                _logger.warning("Redirect artifacts tool path failed")
+                _logger.debug("Details: %s", e)
 
             retries += 1
             result = subprocess.run(

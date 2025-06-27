@@ -1,14 +1,95 @@
 # Release History
 
-## 1.0.0b34 (Unreleased)
-
-### Features Added
-
-### Breaking Changes
+## 1.0.0b39 (2025-06-25)
 
 ### Bugs Fixed
 
+- Suppress stdout side effect of add permissions to file for local storage on Windows
+  ([#41727](https://github.com/Azure/azure-sdk-for-python/pull/41727))
+
 ### Other Changes
+
+- Add logging errors for `401: Unauthorized` and `403: Forbidden` to assist in customer troubleshooting
+  ([#41767](https://github.com/Azure/azure-sdk-for-python/pull/41767))
+
+## 1.0.0b38 (2025-06-17)
+
+### Features Added
+
+- Add AMW deduplicating flag, SentToAMW, for AKS Attach
+  ([#41410](https://github.com/Azure/azure-sdk-for-python/pull/41410))
+- Implement APPLICATIONINSIGHTS_METRICS_TO_LOGANALYTICS_ENABLED env var for AKS Attach .
+  ([#41383](https://github.com/Azure/azure-sdk-for-python/pull/41383))
+
+### Bugs Fixed
+- Fix for issue #41470. Added back exception message, removed earlier due to linting errors
+  ([#41512] https://github.com/Azure/azure-sdk-for-python/pull/41512)
+- Should leave ingestion to populate Device OS from User Agent
+  ([#41549] https://github.com/Azure/azure-sdk-for-python/pull/41549)
+
+### Other Changes
+
+- Update instrumentation list for Attach Statsbeat
+  ([#41537] https://github.com/Azure/azure-sdk-for-python/pull/41537)
+
+## 1.0.0b37 (2025-05-29)
+
+### Features Added
+
+- Implement spec for k8s attribute logic.
+  ([#41130](https://github.com/Azure/azure-sdk-for-python/pull/41130))
+
+### Bugs Fixed
+
+- Do not count Functions as App Service
+  ([#41327](https://github.com/Azure/azure-sdk-for-python/pull/41327))
+
+### Other Changes
+
+- Extend version range for `psutil` to include 7.x
+  ([#40459](https://github.com/Azure/azure-sdk-for-python/pull/40459))
+- Add folder permissions for local files
+  ([#41384](https://github.com/Azure/azure-sdk-for-python/pull/41384))
+
+## 1.0.0b36 (2025-04-07)
+
+### Features Added
+
+- Support `syntheticSource` from `user_agent.synthetic.type` semantic convention
+  ([#40004](https://github.com/Azure/azure-sdk-for-python/pull/40004))
+- Support `server.address` attributes when converting Azure SDK messaging spans to envelopes
+  ([#40059](https://github.com/Azure/azure-sdk-for-python/pull/40059))
+- Update AKS check to use KUBERNETES_SERVICE_HOST
+  ([#39941](https://github.com/Azure/azure-sdk-for-python/pull/39941))
+- Enabled Entra ID Credential configuration via env var
+  ([#40237](https://github.com/Azure/azure-sdk-for-python/pull/40237))
+
+## 1.0.0b35 (2025-03-04)
+
+### Features Added
+
+- Support sending `customEvent` telemetry through special `microsoft` marker
+  ([#39886](https://github.com/Azure/azure-sdk-for-python/pull/39886))
+- Populate `client_Ip` on `customEvent` telemetry
+  ([#39923](https://github.com/Azure/azure-sdk-for-python/pull/39923))
+
+### Bugs Fixed
+
+- Implement `from_log_record` for `Trace` data types in live metrics
+  ([#39922](https://github.com/Azure/azure-sdk-for-python/pull/39922))
+
+## 1.0.0b34 (2025-02-26)
+
+### Features Added
+
+- Support AAD for sovereign clouds
+  ([#39379](https://github.com/Azure/azure-sdk-for-python/pull/39379))
+- Support stable http semantic conventions for breeze exporter - REQUESTS
+  ([#39208](https://github.com/Azure/azure-sdk-for-python/pull/39208))
+- Support stable http semantic conventions for breeze exporter - DEPENDENCIES
+  ([#39441](https://github.com/Azure/azure-sdk-for-python/pull/39441))
+  - Support stable http semantic conventions for standard metrics + synthetic type for server standard metrics
+  ([#39799](https://github.com/Azure/azure-sdk-for-python/pull/39799))
 
 ## 1.0.0b33 (2025-01-14)
 
@@ -531,3 +612,5 @@
 ## 0.1a.0 (2019-11-06)
 
 - Initial alpha release
+
+# cSpell:enable

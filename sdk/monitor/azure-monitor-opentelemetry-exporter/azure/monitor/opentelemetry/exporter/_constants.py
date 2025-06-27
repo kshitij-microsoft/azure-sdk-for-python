@@ -3,6 +3,10 @@
 # cSpell:disable
 
 from opentelemetry.semconv.metrics import MetricInstruments
+from opentelemetry.semconv.metrics.http_metrics import (
+    HTTP_CLIENT_REQUEST_DURATION,
+    HTTP_SERVER_REQUEST_DURATION,
+)
 
 # Environment variables
 
@@ -11,6 +15,8 @@ _APPLICATIONINSIGHTS_OPENTELEMETRY_RESOURCE_METRIC_DISABLED = (
     "APPLICATIONINSIGHTS_OPENTELEMETRY_RESOURCE_METRIC_DISABLED"
 )
 _APPLICATIONINSIGHTS_METRIC_NAMESPACE_OPT_IN = "APPLICATIONINSIGHTS_METRIC_NAMESPACE_OPT_IN"
+_APPLICATIONINSIGHTS_METRICS_TO_LOGANALYTICS_ENABLED = "APPLICATIONINSIGHTS_METRICS_TO_LOGANALYTICS_ENABLED"
+_APPLICATIONINSIGHTS_AUTHENTICATION_STRING = "APPLICATIONINSIGHTS_AUTHENTICATION_STRING"
 
 # RPs
 
@@ -18,8 +24,9 @@ _WEBSITE_SITE_NAME = "WEBSITE_SITE_NAME"
 _WEBSITE_HOME_STAMPNAME = "WEBSITE_HOME_STAMPNAME"
 _WEBSITE_HOSTNAME = "WEBSITE_HOSTNAME"
 _FUNCTIONS_WORKER_RUNTIME = "FUNCTIONS_WORKER_RUNTIME"
-_PYTHON_ENABLE_OPENTELEMETRY = "PYTHON_ENABLE_OPENTELEMETRY"
+_PYTHON_APPLICATIONINSIGHTS_ENABLE_TELEMETRY = "PYTHON_APPLICATIONINSIGHTS_ENABLE_TELEMETRY"
 _AKS_ARM_NAMESPACE_ID = "AKS_ARM_NAMESPACE_ID"
+_KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST"
 
 # Network
 
@@ -59,6 +66,7 @@ _REMOTE_DEPENDENCY_ENVELOPE_NAME = "Microsoft.ApplicationInsights.RemoteDependen
 # Feature constants
 _APPLICATION_INSIGHTS_EVENT_MARKER_ATTRIBUTE = "APPLICATION_INSIGHTS_EVENT_MARKER_ATTRIBUTE"
 _AZURE_MONITOR_DISTRO_VERSION_ARG = "distro_version"
+_MICROSOFT_CUSTOM_EVENT_NAME = "microsoft.custom_event.name"
 
 # Statsbeat
 
@@ -129,7 +137,7 @@ _INSTRUMENTATIONS_LIST = [
     "requests",
     "sqlalchemy",
     "aio-pika",
-    "aiohttp-client",
+    "aiohttp_client",
     "aiopg",
     "asgi",
     "asyncpg",
@@ -142,7 +150,7 @@ _INSTRUMENTATIONS_LIST = [
     "grpc",
     "httpx",
     "jinja2",
-    "kafka-python",
+    "kafka",
     "pika",
     "pymemcache",
     "redis",
@@ -150,20 +158,27 @@ _INSTRUMENTATIONS_LIST = [
     "sklearn",
     "sqlite3",
     "starlette",
-    "system-metrics",
+    "system_metrics",
     "tornado",
     "urllib",
     "urllib3",
     _AZURE_SDK_OPENTELEMETRY_NAME,
-    # Instrumentations below this line have not been added to statsbeat report yet
     "cassandra",
     "tortoiseorm",
-    "aiohttp-server",
+    "aiohttp_server",
     "asyncio",
     "mysqlclient",
     "psycopg",
     "threading",
     "wsgi",
+    "aiokafka",
+    "asyncclick",
+    "click",
+    "pymssql",
+    "google_genai",
+    "openai_v2",
+    "vertexai",
+    # Instrumentations below this line have not been added to statsbeat report yet
 ]
 
 _INSTRUMENTATIONS_BIT_MAP = {_INSTRUMENTATIONS_LIST[i]: _BASE**i for i in range(len(_INSTRUMENTATIONS_LIST))}
@@ -172,6 +187,8 @@ _INSTRUMENTATIONS_BIT_MAP = {_INSTRUMENTATIONS_LIST[i]: _BASE**i for i in range(
 
 # List of metric instrument names that are autocollected from instrumentations
 _AUTOCOLLECTED_INSTRUMENT_NAMES = (
+    HTTP_CLIENT_REQUEST_DURATION,
+    HTTP_SERVER_REQUEST_DURATION,
     MetricInstruments.HTTP_SERVER_DURATION,
     MetricInstruments.HTTP_SERVER_REQUEST_SIZE,
     MetricInstruments.HTTP_SERVER_RESPONSE_SIZE,
@@ -204,6 +221,6 @@ _SAMPLE_RATE_KEY = "_MS.sampleRate"
 
 # AAD Auth
 
-_APPLICATION_INSIGHTS_RESOURCE_SCOPE = "https://monitor.azure.com//.default"
+_DEFAULT_AAD_SCOPE = "https://monitor.azure.com//.default"
 
 # cSpell:disable
