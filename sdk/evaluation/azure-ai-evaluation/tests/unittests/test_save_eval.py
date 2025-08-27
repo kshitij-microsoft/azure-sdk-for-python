@@ -35,6 +35,7 @@ class TestSaveEval:
         evaluators,
         exceptions=[
             "AIAgentConverter",
+            "SKAgentConverter",
             "RedTeam",
             "RedTeamOutput",
             "AzureOpenAIGrader",
@@ -42,6 +43,7 @@ class TestSaveEval:
             "AzureOpenAIScoreModelGrader",
             "AzureOpenAIStringCheckGrader",
             "AzureOpenAITextSimilarityGrader",
+            "AzureOpenAIPythonGrader",
         ],
     )
 
