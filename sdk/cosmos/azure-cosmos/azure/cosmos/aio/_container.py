@@ -21,12 +21,13 @@
 
 """Create, read, update and delete items in the Azure Cosmos DB SQL API service.
 """
-import asyncio # pylint: disable=do-not-import-asyncio
-from datetime import datetime
-from typing import (Any, Dict, Mapping, Optional, Sequence, Type, Union, List, Tuple, cast, overload, AsyncIterable,
-                    Callable)
+import asyncio  # pylint: disable=do-not-import-asyncio
 import warnings
+from datetime import datetime
+from typing import (Any, AsyncIterable, Callable, cast, Dict, List, Mapping, Optional, overload, Sequence, Tuple, Type,
+                    Union)
 from typing_extensions import Literal
+
 from azure.core import MatchConditions
 from azure.core.async_paging import AsyncItemPaged, AsyncList
 from azure.core.tracing.decorator import distributed_trace
@@ -36,35 +37,27 @@ from azure.cosmos._change_feed.change_feed_utils import validate_kwargs
 from ._cosmos_client_connection_async import CosmosClientConnection
 from ._scripts import ScriptsProxy
 from .. import _utils as utils
-from .._base import (
-    build_options as _build_options,
-    validate_cache_staleness_value,
-    _deserialize_throughput,
-    _replace_throughput,
-    GenerateGuidId,
-    _build_properties_cache
-)
+from .._base import (_build_properties_cache, _deserialize_throughput, _replace_throughput,
+                     build_options as _build_options, GenerateGuidId, validate_cache_staleness_value)
 from .._change_feed.feed_range_internal import FeedRangeInternalEpk
-from .._cosmos_responses import CosmosDict, CosmosList
 from .._constants import _Constants as Constants
+from .._cosmos_responses import CosmosDict, CosmosList
 from .._routing.routing_range import Range
 from .._session_token_helpers import get_latest_session_token
+from ..exceptions import CosmosHttpResponseError
 from ..offer import ThroughputProperties
-from ..partition_key import (
-    NonePartitionKeyValue,
-    _return_undefined_or_empty_partition_key,
-    _Empty,
-    _Undefined,
-    _get_partition_key_from_partition_key_definition
-)
+from ..partition_key import (_get_partition_key_from_partition_key_definition, _PartitionKeyType,
+                             _return_undefined_or_empty_partition_key, NonePartitionKeyValue, NullPartitionKeyValue)
+
 __all__ = ("ContainerProxy",)
 
-# pylint: disable=protected-access, too-many-lines
+# pylint: disable=protected-access,too-many-lines,line-too-long
 # pylint: disable=missing-client-constructor-parameter-credential,missing-client-constructor-parameter-kwargs
 # pylint: disable=too-many-public-methods
 # pylint: disable=docstring-keyword-should-match-keyword-only
+# cspell:ignore rerank reranker reranking
 
-PartitionKeyType = Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]], Type[NonePartitionKeyValue]]  # pylint: disable=line-too-long
+PartitionKeyType = Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]], None, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue]]  # pylint: disable=line-too-long
 
 
 class ContainerProxy:
@@ -147,15 +140,17 @@ class ContainerProxy:
 
     async def _set_partition_key(
         self,
-        partition_key: PartitionKeyType
-    ) -> Union[str, int, float, bool, List[Union[str, int, float, bool]], _Empty, _Undefined]:
+        partition_key: _PartitionKeyType
+    ) -> _PartitionKeyType:
         if partition_key == NonePartitionKeyValue:
             return _return_undefined_or_empty_partition_key(await self.is_system_key)
+        if partition_key == NullPartitionKeyValue:
+            return None
         return cast(Union[str, int, float, bool, List[Union[str, int, float, bool]]], partition_key)
 
     async def _get_epk_range_for_partition_key(
             self,
-            partition_key_value: PartitionKeyType,
+            partition_key_value: _PartitionKeyType,
             feed_options: Optional[Dict[str, Any]] = None) -> Range:
         container_properties = await self._get_properties_with_options(feed_options)
         partition_key_definition = container_properties["partitionKey"]
@@ -172,7 +167,7 @@ class ContainerProxy:
         priority: Optional[Literal["High", "Low"]] = None,
         initial_headers: Optional[Dict[str, str]] = None,
         **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> CosmosDict:
         """Read the container properties.
 
         :keyword bool populate_partition_key_range_statistics: Enable returning partition key
@@ -321,8 +316,11 @@ class ContainerProxy:
 
         :param item: The ID (name) or dict representing item to retrieve.
         :type item: Union[str, Dict[str, Any]]
-        :param partition_key: Partition key for the item to retrieve.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: Partition key for the item to retrieve. If the partition key is set to None, it will try
+            to fetch an item with a partition key of null. To learn more about using partition keys, see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword str post_trigger_include: trigger id to be used as post operation trigger.
         :keyword str session_token: Token for use with Session consistency.
         :keyword dict[str, str] initial_headers: Initial headers to be sent as part of the request.
@@ -470,7 +468,6 @@ class ContainerProxy:
         :rtype: ~azure.cosmos.CosmosList
         """
 
-
         if session_token is not None:
             kwargs['session_token'] = session_token
         if initial_headers is not None:
@@ -490,9 +487,10 @@ class ContainerProxy:
         await self._get_properties_with_options(query_options)
         query_options["enableCrossPartitionQuery"] = True
 
+        item_tuples = [(item_id, await self._set_partition_key(pk)) for item_id, pk in items]
         return await self.client_connection.read_items(
             collection_link=self.container_link,
-            items=items,
+            items=item_tuples,
             options= query_options,
             **kwargs)
 
@@ -542,8 +540,11 @@ class ContainerProxy:
             Each parameter is a dict() with 'name' and 'value' keys.
             Ignored if no query is provided.
         :paramtype parameters: [List[Dict[str, object]]]
-        :keyword partition_key: Partition key at which the query request is targeted.
-        :paramtype partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :keyword partition_key: Partition key at which the query request is targeted. If the partition key is set to
+            None, it will perform a cross partition query. To learn more about using partition keys, see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :paramtype partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword bool populate_index_metrics: Used to obtain the index metrics to understand how the query engine used
             existing indexes and how it could use potential new indexes. Please note that this option will incur
             overhead, so it should be enabled only when debugging slow queries.
@@ -613,7 +614,6 @@ class ContainerProxy:
             in this list are specified as the names of the Azure Cosmos locations like, 'West US', 'East US' and so on.
             If all preferred locations were excluded, primary/hub location will be used.
             This excluded_location will override existing excluded_locations in client level.
-        :keyword Dict[str, Any] feed_range: The feed range that is used to define the scope.
         :keyword Dict[str, str] initial_headers: Initial headers to be sent as part of the request.
         :keyword int max_integrated_cache_staleness_in_ms: The max cache staleness for the integrated cache in
             milliseconds. For accounts configured to use the integrated cache, using Session or Eventual consistency,
@@ -691,8 +691,11 @@ class ContainerProxy:
             Each parameter is a dict() with 'name' and 'value' keys.
             Ignored if no query is provided.
         :paramtype parameters: [List[Dict[str, object]]]
-        :keyword partition_key: Partition key at which the query request is targeted.
-        :paramtype partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :keyword partition_key: Partition key at which the query request is targeted. If the partition key is set to
+            None, it will perform a cross partition query. To learn more about using partition keys, see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :paramtype partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword bool populate_index_metrics: Used to obtain the index metrics to understand how the query engine used
             existing indexes and how it could use potential new indexes. Please note that this option will incur
             overhead, so it should be enabled only when debugging slow queries.
@@ -700,7 +703,6 @@ class ContainerProxy:
         :keyword Literal["High", "Low"] priority: Priority based execution allows users to set a priority for each
             request. Once the user has reached their provisioned throughput, low priority requests are throttled
             before high priority requests start getting throttled. Feature must first be enabled at the account level.
-        :keyword str query: The Azure Cosmos DB SQL query to execute.
         :keyword response_hook: A callable invoked with the response metadata.
         :paramtype response_hook: Callable[[Mapping[str, str], Dict[str, Any]], None]
         :keyword str session_token: Token for use with Session consistency.
@@ -755,14 +757,13 @@ class ContainerProxy:
         kwargs["containerProperties"] = self._get_properties_with_options
 
         utils.verify_exclusive_arguments(["feed_range", "partition_key"], **kwargs)
-        partition_key = None
         # If 'partition_key' is provided, set 'partitionKey' in 'feed_options'
         if utils.valid_key_value_exist(kwargs, "partition_key"):
-            partition_key = kwargs.pop("partition_key")
-            feed_options["partitionKey"] = self._set_partition_key(partition_key)
+            feed_options["partitionKey"] = self._set_partition_key(kwargs["partition_key"])
         # If 'partition_key' or 'feed_range' is not provided, set 'enableCrossPartitionQuery' to True
         elif not utils.valid_key_value_exist(kwargs, "feed_range"):
             feed_options["enableCrossPartitionQuery"] = True
+        kwargs.pop("partition_key", None)
 
         # Set 'response_hook'
         response_hook = kwargs.pop("response_hook", None)
@@ -773,7 +774,7 @@ class ContainerProxy:
             database_or_container_link=self.container_link,
             query=query,
             options=feed_options,
-            partition_key=partition_key,
+            partition_key=feed_options.get("partitionKey"),
             response_hook=response_hook,
             **kwargs
         )
@@ -801,12 +802,15 @@ class ContainerProxy:
             By default, it is start from current ("Now")
         :paramtype start_time: Union[~datetime.datetime, Literal["Now", "Beginning"]]
         :keyword partition_key: The partition key that is used to define the scope
-            (logical partition or a subset of a container)
-        :paramtype partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+            (logical partition or a subset of a container). If the partition key is set to None, it will try to
+            fetch an changes for an item with a partition key value of null. To learn more about using partition keys,
+            see`here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :paramtype partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword Literal["High", "Low"] priority: Priority based execution allows users to set a priority for each
             request. Once the user has reached their provisioned throughput, low priority requests are throttled
             before high priority requests start getting throttled. Feature must first be enabled at the account level.
-        :paramtype priority: Literal["High", "Low"]
         :keyword mode: The modes to query change feed. If `continuation` was passed, 'mode' argument will be ignored.
             LATEST_VERSION: Query latest items from 'start_time' or 'continuation' token.
             ALL_VERSIONS_AND_DELETES: Query all versions and deleted items from either `start_time='Now'`
@@ -938,7 +942,7 @@ class ContainerProxy:
         ...
 
     @distributed_trace
-    def query_items_change_feed( # pylint: disable=unused-argument
+    def query_items_change_feed(  # pylint: disable=unused-argument
             self,
             **kwargs: Any
     ) -> AsyncItemPaged[Dict[str, Any]]:
@@ -1100,6 +1104,52 @@ class ContainerProxy:
         return result
 
     @distributed_trace_async
+    async def semantic_rerank(
+        self,
+        reranking_context: str,
+        documents: List[str],
+        semantic_reranking_options: Optional[Dict[str, Any]] = None
+    ) -> CosmosDict:
+        """Rerank a list of documents using semantic reranking.
+
+        This method uses a semantic reranker to score and reorder the provided documents
+        based on their relevance to the given reranking context.
+
+        :param str reranking_context: The context or query string to use for reranking the documents.
+        :param list[str] documents: A list of documents (as strings) to be reranked.
+        :param semantic_reranking_options: Optional dictionary of additional options to customize the semantic reranking process.
+
+         Supported options:
+
+         * **return_documents** (bool): Whether to return the document text in the response. If False, only scores and indices are returned. Default is True.
+         * **top_k** (int): Maximum number of documents to return in the reranked results. If not specified, all documents are returned.
+         * **batch_size** (int): Number of documents to process in each batch. Used for optimizing performance with large document sets.
+         * **sort** (bool): Whether to sort the results by relevance score in descending order. Default is True.
+         * **document_type** (str): Type of documents being reranked. Supported values are "string" and "json".
+         * **target_paths** (list[str]): If document_type is "json", the list of JSON paths to extract text from for reranking.
+
+        :type semantic_reranking_options: Optional[Dict[str, Any]]
+        :returns: A CosmosDict containing the reranking results. The structure typically includes results list with reranked documents and their relevance scores. Each result contains index, relevance_score, and optionally document.
+        :rtype: ~azure.cosmos.CosmosDict[str, Any]
+        :raises ~azure.cosmos.exceptions.CosmosHttpResponseError: If the semantic reranking operation fails.
+        """
+
+        inference_service = self.client_connection._get_inference_service()
+        if inference_service is None:
+            raise CosmosHttpResponseError(
+                message="Semantic reranking requires AAD credentials (inference service not initialized).",
+                response=None
+            )
+
+        result = await inference_service.rerank(
+            reranking_context=reranking_context,
+            documents=documents,
+            semantic_reranking_options=semantic_reranking_options
+        )
+
+        return result
+
+    @distributed_trace_async
     async def replace_item(
         self,
         item: Union[str, Mapping[str, Any]],
@@ -1211,8 +1261,12 @@ class ContainerProxy:
 
         :param item: The ID (name) or dict representing item to be patched.
         :type item: Union[str, Dict[str, Any]]
-        :param partition_key: The partition key of the object to patch.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: The partition key of the object to patch. If the partition key is set to None,
+            it will try to patch an item with a partition key value of null. To learn more about using partition keys,
+            see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :param patch_operations: The list of patch operations to apply to the item.
         :type patch_operations: List[Dict[str, Any]]
         :keyword str filter_predicate: conditional filter to apply to Patch operations.
@@ -1298,8 +1352,12 @@ class ContainerProxy:
 
         :param item: The ID (name) or dict representing item to be deleted.
         :type item: Union[str, Dict[str, Any]]
-        :param partition_key: Specifies the partition key value for the item.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: Specifies the partition key value for the item. If the partition key is set to None,
+            it will try to delete an item with a partition key value of null. To learn more about using partition keys,
+            see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword str pre_trigger_include: trigger id to be used as pre operation trigger.
         :keyword str post_trigger_include: trigger id to be used as post operation trigger.
         :keyword str session_token: Token for use with Session consistency.
@@ -1467,9 +1525,11 @@ class ContainerProxy:
         :param str query: The Azure Cosmos DB SQL query to execute.
         :keyword parameters: Optional array of parameters to the query. Ignored if no query is provided.
         :paramtype parameters: List[Dict[str, Any]]
-        :keyword partition_key: Specifies the partition key value for the item. If none is passed in, a
-            cross partition query will be executed.
-        :paramtype partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :keyword partition_key: Specifies the partition key value for the item. If the partition key is set to None,
+            it will perform a cross partition query. To learn more about using partition keys, see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :paramtype partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword int max_item_count: Max number of items to be returned in the enumeration operation.
         :keyword response_hook: A callable invoked with the response metadata.
         :paramtype response_hook: Callable[[Dict[str, str], AsyncItemPaged[Dict[str, Any]]], None]
@@ -1507,8 +1567,12 @@ class ContainerProxy:
 
         :param conflict: The ID (name) or dict representing the conflict to retrieve.
         :type conflict: Union[str, Dict[str, Any]]
-        :param partition_key: Partition key for the conflict to retrieve.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: Partition key for the conflict to retrieve. If the partition key is set to None,
+            it will try to fetch a conflict with a partition key of null. To learn more about using partition keys, see
+            `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword response_hook: A callable invoked with the response metadata.
         :paramtype response_hook: Callable[[Dict[str, str], Dict[str, Any]], None]
         :raises ~azure.cosmos.exceptions.CosmosHttpResponseError: The given conflict couldn't be retrieved.
@@ -1537,8 +1601,12 @@ class ContainerProxy:
 
         :param conflict: The ID (name) or dict representing the conflict to retrieve.
         :type conflict: Union[str, Dict[str, Any]]
-        :param partition_key: Partition key for the conflict to retrieve.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: Partition key for the conflict to delete. If the partition key is set to None, it will
+            try to delete a conflict with a partition key value of null. To learn more about using partition keys, see
+            `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword response_hook: A callable invoked with the response metadata.
         :paramtype response_hook: Callable[[Dict[str, str], None], None]
         :raises ~azure.cosmos.exceptions.CosmosHttpResponseError: The conflict wasn't deleted successfully.
@@ -1569,8 +1637,11 @@ class ContainerProxy:
         available RU/s on the container each second. This helps in limiting the resources used by
         this background task.
 
-        :param partition_key: Partition key for the items to be deleted.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: Partition key for the items to be deleted. If the partition key is set to None, it will
+            try to delete the items with a partition key of null. To learn more about using partition keys, see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword str pre_trigger_include: trigger id to be used as pre operation trigger.
         :keyword str post_trigger_include: trigger id to be used as post operation trigger.
         :keyword str session_token: Token for use with Session consistency.
@@ -1629,8 +1700,12 @@ class ContainerProxy:
 
         :param batch_operations: The batch of operations to be executed.
         :type batch_operations: List[Tuple[Any]]
-        :param partition_key: The partition key value of the batch operations.
-        :type partition_key: Union[str, int, float, bool, Sequence[Union[str, int, float, bool, None]]]
+        :param partition_key: The partition key value of the batch operations. If the partition key is set to None, it
+            will try to execute batch on an item with a partition key value of null. To learn more about using partition
+            keys, see `here
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
+        :type partition_key: Union[str, int, float, bool, Type[NonePartitionKeyValue], Type[NullPartitionKeyValue],
+            None, Sequence[Union[str, int, float, bool, None]]]
         :keyword str pre_trigger_include: trigger id to be used as pre operation trigger.
         :keyword str post_trigger_include: trigger id to be used as post operation trigger.
         :keyword str session_token: Token for use with Session consistency.
@@ -1702,16 +1777,17 @@ class ContainerProxy:
         if force_refresh is True:
             self.client_connection.refresh_routing_map_provider()
 
-        async def get_next(continuation_token:str) -> List[Dict[str, Any]]: # pylint: disable=unused-argument
+        async def get_next(continuation_token: str) -> List[Dict[str, Any]]:  # pylint: disable=unused-argument
             partition_key_ranges = \
-                await self.client_connection._routing_map_provider.get_overlapping_ranges( # pylint: disable=protected-access
+                await self.client_connection._routing_map_provider.get_overlapping_ranges(
+                    # pylint: disable=protected-access
                     self.container_link,
                     # default to full range
                     [Range("", "FF", True, False)],
                     **kwargs)
 
             feed_ranges = [FeedRangeInternalEpk(Range.PartitionKeyRangeToRange(partitionKeyRange)).to_dict()
-                       for partitionKeyRange in partition_key_ranges]
+                           for partitionKeyRange in partition_key_ranges]
 
             return feed_ranges
 
@@ -1745,10 +1821,14 @@ class ContainerProxy:
         return get_latest_session_token(feed_ranges_to_session_tokens, target_feed_range)
 
     async def feed_range_from_partition_key(self, partition_key: PartitionKeyType) -> Dict[str, Any]:
-        """ Gets the feed range for a given partition key.
-        :param partition_key: partition key to get feed range.
+        """Gets the feed range for a given partition key.
+
+        :param partition_key: Partition key value used to derive the feed range. If set to ``None`` a feed range
+            representing the logical partition whose partition key value is JSON null will be created. To learn more
+            about using partition keys, see `Partition Keys
+            <https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/cosmos/azure-cosmos/docs/PartitionKeys.md>`_.
         :type partition_key: PartitionKeyType
-        :returns: a feed range
+        :returns: A feed range corresponding to the supplied partition key value.
         :rtype: Dict[str, Any]
 
         .. warning::
@@ -1756,7 +1836,8 @@ class ContainerProxy:
           are present. It therefore should only be treated as an opaque value.
 
         """
-        return FeedRangeInternalEpk(await self._get_epk_range_for_partition_key(partition_key)).to_dict()
+        partition_key_value = await self._set_partition_key(partition_key)
+        return FeedRangeInternalEpk(await self._get_epk_range_for_partition_key(partition_key_value)).to_dict()
 
     async def is_feed_range_subset(self, parent_feed_range: Dict[str, Any],
                                    child_feed_range: Dict[str, Any]) -> bool:

@@ -49,6 +49,11 @@ class GroundednessEvaluator(PromptyEvaluatorBase[Union[str, float]]):
         ~azure.ai.evaluation.OpenAIModelConfiguration]
     :param threshold: The threshold for the groundedness evaluator. Default is 3.
     :type threshold: int
+    :param credential: The credential for authenticating to Azure AI service.
+    :type credential: ~azure.core.credentials.TokenCredential
+    :keyword is_reasoning_model: If True, the evaluator will use reasoning model configuration (o1/o3 models).
+        This will adjust parameters like max_completion_tokens and remove unsupported parameters. Default is False.
+    :paramtype is_reasoning_model: bool
 
     .. admonition:: Example:
 
@@ -94,7 +99,7 @@ class GroundednessEvaluator(PromptyEvaluatorBase[Union[str, float]]):
     """Evaluator identifier, experimental and to be used only with evaluation in cloud."""
 
     @override
-    def __init__(self, model_config, *, threshold=3, **kwargs):
+    def __init__(self, model_config, *, threshold=3, credential=None, **kwargs):
         current_dir = os.path.dirname(__file__)
         prompty_path = os.path.join(current_dir, self._PROMPTY_FILE_NO_QUERY)  # Default to no query
 
@@ -104,7 +109,9 @@ class GroundednessEvaluator(PromptyEvaluatorBase[Union[str, float]]):
             prompty_file=prompty_path,
             result_key=self._RESULT_KEY,
             threshold=threshold,
+            credential=credential,
             _higher_is_better=self._higher_is_better,
+            **kwargs,
         )
         self._model_config = model_config
         self.threshold = threshold
