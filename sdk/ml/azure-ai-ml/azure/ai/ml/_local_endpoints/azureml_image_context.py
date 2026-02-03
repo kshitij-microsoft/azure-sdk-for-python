@@ -5,12 +5,47 @@
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Dict
 
 from azure.ai.ml.constants._endpoint import LocalEndpointConstants
 
 module_logger = logging.getLogger(__name__)
+
+
+def _validate_scoring_script_path(path: str) -> None:
+    """Validate that scoring_script path does not contain dangerous characters.
+    
+    This provides defense-in-depth against command injection attacks.
+    
+    :param path: The scoring script path to validate
+    :type path: str
+    :raises ValueError: If the path contains dangerous characters or patterns
+    """
+    if not path:
+        return
+    
+    # Reject paths containing shell metacharacters that could be used for command injection
+    dangerous_chars = [';', '&', '|', '$', '`', '\n', '\r', '>', '<']
+    for char in dangerous_chars:
+        if char in path:
+            raise ValueError(
+                f"Invalid scoring_script path: contains dangerous character '{char}'. "
+                "Path must only contain alphanumeric characters, underscores, hyphens, dots, and forward/backward slashes."
+            )
+    
+    # Reject path traversal attempts
+    if '..' in path:
+        raise ValueError("Invalid scoring_script path: path traversal detected (..).")
+    
+    # Validate against a safe pattern (letters, numbers, underscores, hyphens, dots, slashes)
+    # Allow both forward and backward slashes for cross-platform compatibility
+    if not re.match(r'^[\w\-./\\]+$', path):
+        raise ValueError(
+            f"Invalid scoring_script path: '{path}'. "
+            "Path must only contain alphanumeric characters, underscores, hyphens, dots, and forward/backward slashes."
+        )
 
 
 class AzureMlImageContext(object):
@@ -56,6 +91,9 @@ class AzureMlImageContext(object):
         :type model_directory_path: str
         :return: AzureMlImageContext
         """
+        # SECURITY: Validate scoring_script path to prevent command injection
+        _validate_scoring_script_path(yaml_code_scoring_script_file_name)
+        
         self._docker_azureml_app_path = LocalEndpointConstants.AZUREML_APP_PATH
 
         local_model_mount_path = str(model_directory_path)
