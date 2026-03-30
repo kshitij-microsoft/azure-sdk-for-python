@@ -38,8 +38,6 @@ class TestQuery(unittest.TestCase):
             use_multiple_write_locations = True
         cls.client = cosmos_client.CosmosClient(cls.host, cls.credential, multiple_write_locations=use_multiple_write_locations)
         cls.created_db = cls.client.get_database_client(cls.TEST_DATABASE_ID)
-        if cls.host == "https://localhost:8081/":
-            os.environ["AZURE_COSMOS_DISABLE_NON_STREAMING_ORDER_BY"] = "True"
 
     def test_first_and_last_slashes_trimmed_for_query_string(self):
         created_collection = self.created_db.create_container(
@@ -111,6 +109,92 @@ class TestQuery(unittest.TestCase):
                                   'PotentialSingleIndexes': [], 'UtilizedCompositeIndexes': [],
                                   'PotentialCompositeIndexes': []}
         self.assertDictEqual(expected_index_metrics, index_metrics)
+        self.created_db.delete_container(created_collection.id)
+
+    @pytest.mark.skip(reason="Emulator does not support query advisor yet")
+    def test_populate_query_advice(self):
+        created_collection = self.created_db.create_container("query_advice_test",
+                                                              PartitionKey(path="/pk"))
+
+        doc_id = 'MyId' + str(uuid.uuid4())
+        document_definition = {
+            'pk': 'pk', 'id': doc_id, 'name': 'test document',
+            'tags': [{'name': 'python'}, {'name': 'cosmos'}],
+            'timestamp': '2099-01-01T00:00:00Z', 'ticks': 0, 'ts': 0
+        }
+        created_collection.create_item(body=document_definition)
+
+        QUERY_ADVICE_HEADER = http_constants.HttpHeaders.QueryAdvice
+
+        # QA1000 - PartialArrayContains: ARRAY_CONTAINS with partial match
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE ARRAY_CONTAINS(c.tags, {"name": "python"}, true)',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1000", query_advice)
+
+        # QA1002 - Contains: CONTAINS usage
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE CONTAINS(c.name, "test")',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1002", query_advice)
+
+        # QA1003 - CaseInsensitiveStartsWithOrStringEquals: case-insensitive STARTSWITH
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE STARTSWITH(c.name, "test", true)',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1003", query_advice)
+
+        # QA1004 - CaseInsensitiveEndsWith: case-insensitive ENDSWITH
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE ENDSWITH(c.name, "document", true)',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1004", query_advice)
+
+        # QA1007 - GetCurrentDateTime: usage of GetCurrentDateTime
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE c.timestamp < GetCurrentDateTime()',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1007", query_advice)
+
+        # QA1008 - GetCurrentTicks: usage of GetCurrentTicks
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE c.ticks < GetCurrentTicks()',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1008", query_advice)
+
+        # QA1009 - GetCurrentTimestamp: usage of GetCurrentTimestamp
+        query_iterable = created_collection.query_items(
+            query='SELECT * FROM c WHERE c.ts < GetCurrentTimestamp()',
+            partition_key='pk', populate_query_advice=True
+        )
+        list(query_iterable)
+        query_advice = created_collection.client_connection.last_response_headers.get(QUERY_ADVICE_HEADER)
+        self.assertIsNotNone(query_advice)
+        self.assertIn("QA1009", query_advice)
         self.created_db.delete_container(created_collection.id)
 
     # TODO: Need to validate the query request count logic
@@ -765,6 +849,105 @@ class TestQuery(unittest.TestCase):
                 return result
         else:
             raise StopIteration
+
+    def test_query_items_with_parameters_none(self):
+        """Test that query_items handles parameters=None correctly (issue #43662)."""
+        created_collection = self.created_db.create_container(
+            "test_params_none_" + str(uuid.uuid4()), PartitionKey(path="/pk"))
+        
+        # Create test documents
+        doc1_id = 'doc1_' + str(uuid.uuid4())
+        doc2_id = 'doc2_' + str(uuid.uuid4())
+        created_collection.create_item(body={'pk': 'pk1', 'id': doc1_id, 'value1': 1})
+        created_collection.create_item(body={'pk': 'pk2', 'id': doc2_id, 'value1': 2})
+
+        # Test 1: Explicitly passing parameters=None should not cause TypeError
+        query = 'SELECT * FROM c'
+        query_iterable = created_collection.query_items(
+            query=query,
+            parameters=None,
+            enable_cross_partition_query=True
+        )
+        results = list(query_iterable)
+        self.assertEqual(len(results), 2)
+
+        # Test 2: parameters=None with partition_key should work
+        query_iterable = created_collection.query_items(
+            query=query,
+            parameters=None,
+            partition_key='pk1'
+        )
+        results = list(query_iterable)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['id'], doc1_id)
+
+        # Test 3: Verify parameterized query still works with actual parameters
+        query_with_params = 'SELECT * FROM c WHERE c.value1 = @value'
+        query_iterable = created_collection.query_items(
+            query=query_with_params,
+            parameters=[{'name': '@value', 'value': 2}],
+            enable_cross_partition_query=True
+        )
+        results = list(query_iterable)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['id'], doc2_id)
+
+        # Test 4: Query without parameters argument should work (default behavior)
+        query_iterable = created_collection.query_items(
+            query=query,
+            enable_cross_partition_query=True
+        )
+        results = list(query_iterable)
+        self.assertEqual(len(results), 2)
+
+        self.created_db.delete_container(created_collection.id)
+
+    def test_query_items_parameters_none_with_options(self):
+        """Test parameters=None works with various query options."""
+        created_collection = self.created_db.create_container(
+            "test_params_none_opts_" + str(uuid.uuid4()), PartitionKey(path="/pk"))
+        
+        # Create multiple test documents
+        for i in range(5):
+            doc_id = f'doc_{i}_' + str(uuid.uuid4())
+            created_collection.create_item(body={'pk': 'test', 'id': doc_id, 'index': i})
+
+        # Test with parameters=None and max_item_count
+        query = 'SELECT * FROM c ORDER BY c.index'
+        query_iterable = created_collection.query_items(
+            query=query,
+            parameters=None,
+            partition_key='test',
+            max_item_count=2
+        )
+        
+        # Verify pagination works
+        page_count = 0
+        total_items = 0
+        for page in query_iterable.by_page():
+            page_count += 1
+            items = list(page)
+            total_items += len(items)
+            self.assertLessEqual(len(items), 2)
+        
+        self.assertEqual(total_items, 5)
+        self.assertGreaterEqual(page_count, 2)  # Should have multiple pages
+
+        # Test with parameters=None and populate_query_metrics
+        query_iterable = created_collection.query_items(
+            query=query,
+            parameters=None,
+            partition_key='test',
+            populate_query_metrics=True
+        )
+        results = list(query_iterable)
+        self.assertEqual(len(results), 5)
+        
+        # Verify query metrics were populated
+        metrics_header_name = 'x-ms-documentdb-query-metrics'
+        self.assertTrue(metrics_header_name in created_collection.client_connection.last_response_headers)
+
+        self.created_db.delete_container(created_collection.id)
 
 
 if __name__ == "__main__":

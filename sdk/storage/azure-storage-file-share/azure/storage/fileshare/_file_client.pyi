@@ -132,15 +132,13 @@ class ShareFileClient(StorageAccountHostsMixin):
         owner: Optional[str] = None,
         group: Optional[str] = None,
         file_mode: Optional[str] = None,
-        file_property_semantics: Optional[Literal["New", "Restore"]] = None,
-        data: Optional[bytes] = None,
         timeout: Optional[int] = None,
         **kwargs: Any
     ) -> Dict[str, Any]: ...
     @distributed_trace
     def upload_file(
         self,
-        data: Union[bytes, str, Iterable[AnyStr], IO[AnyStr]],
+        data: Union[bytes, str, Iterable[AnyStr], IO[bytes]],
         length: Optional[int] = None,
         file_attributes: Optional[Union[str, NTFSAttributes]] = None,
         file_creation_time: Optional[Union[str, datetime]] = None,
@@ -152,7 +150,7 @@ class ShareFileClient(StorageAccountHostsMixin):
         metadata: Optional[Dict[str, str]] = None,
         content_settings: Optional[ContentSettings] = None,
         validate_content: bool = False,
-        max_concurrency: int = 1,
+        max_concurrency: Optional[int] = None,
         lease: Optional[Union[ShareLeaseClient, str]] = None,
         progress_hook: Optional[Callable[[int, Optional[int]], None]] = None,
         encoding: str = "UTF-8",
@@ -198,10 +196,11 @@ class ShareFileClient(StorageAccountHostsMixin):
         offset: Optional[int] = None,
         length: Optional[int] = None,
         *,
-        max_concurrency: int = 1,
+        max_concurrency: Optional[int] = None,
         validate_content: bool = False,
         lease: Optional[Union[ShareLeaseClient, str]] = None,
         progress_hook: Optional[Callable[[int, Optional[int]], None]] = None,
+        decompress: Optional[bool] = None,
         timeout: Optional[int] = None,
         **kwargs: Any
     ) -> StorageStreamDownloader: ...
