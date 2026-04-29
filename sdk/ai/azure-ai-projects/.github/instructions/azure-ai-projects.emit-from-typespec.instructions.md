@@ -11,8 +11,6 @@ lifecycle operations instead of running commands directly. In particular:
 
 - **`azsdk-common-generate-sdk-locally`** – For generating SDK from TypeSpec, building, running
   checks/tests, updating changelog, metadata, and version.
-- **`fix-black`** – For formatting code.
-- **`fix-pylint`**, **`fix-mypy`** – For fixing lint and type-check issues if they arise.
 
 ---
 
@@ -22,8 +20,16 @@ Ask the user the following questions **one at a time**, waiting for each answer 
 
 ### 1a. Topic branch name
 
-Ask the user for a **topic branch name**. Mention that the expected format is
-`<github-userid>/<work-title>` (e.g. `dcohen/emit-new-api`).
+Ask the user to choose **one** of the following two options for the target topic branch:
+
+1. **Emit to current branch** – Emit directly to the current branch without creating a new topic branch. 
+This is not common, but may be necessary if the user is re-running this workflow because of a previous
+failure, where the topic branch was already created. If the current branch is named `feature/azure-ai-projects/2.2.0`
+then stop and report that they cannot emit directly to the current feature branch.
+
+2. **Create a new topic branch** – Create a new topic branch for the emitted changes. If selected, ask
+ for a topic branch name. Mention that the expected format is
+`<github-userid>/<work-title>` (e.g. `dargilco/emit-from-typespec-04-29-2026`).
 
 ### 1b. TypeSpec source
 
@@ -115,7 +121,15 @@ Show the user the proposed changelog entry and ask for confirmation or edits bef
 
 ---
 
-## Step 7: Commit and push
+## Step 7: Update samples and tests
+
+If there were any breaking changes in existing APIs, like class or method renames, update the 
+samples and tests accordingly to reflect those changes. Changes should be made in the "samples" 
+and "tests" folders under `sdk/ai/azure-ai-projects`.
+
+---
+
+## Step 8: Commit and push
 
 Stage all changes (excluding file names that start with `.env`), commit, and push the topic branch:
 
@@ -129,7 +143,7 @@ git push -u origin <topic-branch>
 
 ---
 
-## Step 8: Create a Pull Request
+## Step 9: Create a Pull Request
 
 Create a PR from the **topic branch** to the **base branch** (recorded in Step 2):
 
