@@ -5,12 +5,9 @@ applying post-emitter fixes, updating the changelog, and creating a Pull Request
 
 **Working directory:** `sdk/ai/azure-ai-projects`
 
-**Skills:** This workflow relies on skills defined under `.github/skills/` at the root of the
-repository. Use those skills for SDK generation, building, changelog updates, and other SDK
-lifecycle operations instead of running commands directly. In particular:
+**Skills:** This workflow relies on skills defined under `.github/skills/` at the root of the repository. Use those skills for SDK generation, building, changelog updates, and other SDK lifecycle operations instead of running commands directly. In particular:
 
-- **`azsdk-common-generate-sdk-locally`** – For generating SDK from TypeSpec, building, running
-  checks/tests, updating changelog, metadata, and version.
+- **`azsdk-common-generate-sdk-locally`** – For generating SDK from TypeSpec, building, running checks/tests, updating changelog, metadata, and version.
 
 ---
 
@@ -22,39 +19,25 @@ Ask the user the following questions **one at a time**, waiting for each answer 
 
 Ask the user to choose **one** of the following two options for the target topic branch:
 
-1. **Emit to current branch** – Emit directly to the current branch without creating a new topic branch. 
-This is not common, but may be necessary if the user is re-running this workflow because of a previous
-failure, where the topic branch was already created. If the current branch is named `feature/azure-ai-projects/2.2.0`
-then stop and report that they cannot emit directly to the current feature branch.
+1. **Create a new topic branch** (this should be the default options) – Create a new topic branch for the emitted changes. If selected, ask for a topic branch name. Mention that the expected format is `<github-userid>/<work-title>`.
 
-2. **Create a new topic branch** – Create a new topic branch for the emitted changes. If selected, ask
- for a topic branch name. Mention that the expected format is
-`<github-userid>/<work-title>`.
+2. **Emit to current branch** – Emit directly to the current branch without creating a new topic branch. This is not common, but may be necessary if the user is re-running this workflow because of a previous failure, where the topic branch was already created. If the current branch is named `feature/azure-ai-projects/2.2.0` then stop and report that they cannot emit directly to the current feature branch.
 
 ### 1b. TypeSpec source
 
 Ask the user to choose **one** of the following three options for the TypeSpec source:
 
-1. **Local TypeSpec folder** – Emit from a local clone of the
-   [azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) repository.
-   If selected, ask for the **full folder path** to the TypeSpec project. This is the folder
-   ending with `\specification\ai-foundry\data-plane\Foundry`.
+1. **Local TypeSpec folder** – Emit from a local clone of the [azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) repository. If selected, ask for the **full folder path** to the TypeSpec project. This is the folder ending with `\specification\ai-foundry\data-plane\Foundry`. If it does not end with that string, stop and report the error to the user. Do not continue.
 
-2. **TypeSpec commit hash** – Emit from a specific commit in the
-   [azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) repository.
-   If selected, ask for the **full commit SHA** (40 characters).
+2. **TypeSpec commit hash** – Emit from a specific commit in the [azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) repository. If selected, ask for the **full commit SHA** (40 characters).
 
-3. **Latest commit on `feature/foundry-release`** – Automatically find the latest commit
-   to the `feature/foundry-release` branch in
-   [Azure/azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) that touched
-   files under `specification/ai-foundry/data-plane/Foundry`, and use that commit hash.
+3. **Latest commit on `feature/foundry-release`** – Automatically find the latest commit to the `feature/foundry-release` branch in [Azure/azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs) that touched files under `specification/ai-foundry/data-plane/Foundry`, and use that commit hash.
 
 ---
 
 ## Step 2: Record the current branch
 
-Before creating the topic branch, record the name of the **current Git branch**. This is
-the branch that the topic branch will be created from, and the branch the PR will target.
+Before creating the topic branch, record the name of the **current Git branch**. This is the branch that the topic branch will be created from, and the branch the PR will target.
 
 ```
 git branch --show-current
@@ -79,57 +62,59 @@ Replace `<topic-branch>` with the name provided by the user in Step 1a.
 
 ## Step 4: Emit SDK from TypeSpec
 
-Use the **`azsdk-common-generate-sdk-locally`** skill to generate the SDK code. The skill
-knows how to invoke `azsdk_package_generate_code` and related MCP tools.
+Use the **`azsdk-common-generate-sdk-locally`** skill to generate the SDK code. The skill knows how to invoke `azsdk_package_generate_code` and related MCP tools.
 
-Provide the skill with the TypeSpec source selected by the user:
+Provide the skill with the TypeSpec source selected by the user. With is either:
 
-- **Local folder:** Pass the local spec repo path for local generation.
-- **Commit hash:** Update `commit:` in `tsp-location.yaml` to the full SHA first,
-  then invoke the skill for generation.
+- **Local folder:** Pass the local spec repo path for local generation. Or,
+- **Commit hash:** Update `commit:` in `tsp-location.yaml` to the full SHA first, then invoke the skill for generation.
 
-**If the generation fails**, stop and report the error to the user. Do not continue.
+Note:
+- You are only allowed to use the `tsp-client update` command. Do not use any of the other `tsp-client` commands.
+- If you are generating from local TypeSpec folder, do not edit the file `tsp-location.yaml`. Leave it as is. It should not be used by the emitter.
+- If you are generating from local TypeSpec folder, make sure that the local folder path you provide `tsp-client update --local-spec-repo` ends with `specification\ai-foundry\data-plane\Foundry`.
+- **If the generation fails**, stop and report the error to the user. Do not continue.
 
 ---
 
 ## Step 5: Run post-emitter fixes
 
-After a successful emit, run the post-emitter fix script located in the
-`sdk/ai/azure-ai-projects` folder:
+After a successful emit, run the post-emitter fix script located in the `sdk/ai/azure-ai-projects` folder:
 
 ```
 post-emitter-fixes.cmd
 ```
 
-This script applies azure-ai-projects-specific corrections to the emitted code (restores
-`pyproject.toml`, fixes enum names, patches Sphinx doc-string issues, and runs `black`
-formatting).
+This script applies azure-ai-projects-specific corrections to the emitted code (restores `pyproject.toml`, fixes enum names, patches Sphinx doc-string issues, and runs `black` formatting).
 
-**If the script fails**, stop and report the error to the user. Do not continue. Do not attempt
-to analyze the script failures and fix them with Copilot. The script should be fixed by the engineering
-team if it is not working.
+**If the script fails**, stop and report the error to the user. Do not continue. Do not attempt to analyze the script failures and fix them with Copilot. The script should be fixed by the engineering team if it is not working.
 
 ---
 
-## Step 6: Update CHANGELOG.md
+## Step 6: Fix patched code
 
-Use the **`azsdk-common-generate-sdk-locally`** skill's changelog capability
-(`azsdk_package_update_changelog_content`) to update `CHANGELOG.md` in the
-`sdk/ai/azure-ai-projects` folder with a summary of changes from the TypeSpec emit.
+The emitted code may have introduced another beta sub-client (a new property on class `BetaOperations`). It may have also added another enum value to the existing internal class `_FoundryFeaturesOptInKeys`. This means that the client library needs to set a new HTTP request header when making REST API calls to the service, to opt-in to the new service features which are still in preview.
+If that's the case, update the dictionary `_BETA_OPERATION_FEATURE_HEADERS` defined in `azure\ai\projects\models\_patch.py`, to include a new key-value pair to map the new beta sub-client name to the proper value from `_FoundryFeaturesOptInKeys`. If no new beta sub-client was introduced, but a new enum value was added to `_FoundryFeaturesOptInKeys`, you will need to update one of the existing key-value pairs in `_BETA_OPERATION_FEATURE_HEADERS` to a comma-separated join of multiple values from `_FoundryFeaturesOptInKeys`.
+
+If a new enum value was added to `_AgentDefinitionOptInKeys`, please print a note on screen that mentions which value was added, and tell the user that a review is needed to make sure this new value is properly used. But otherwise continue on.
+
+---
+
+## Step 7: Update CHANGELOG.md
+
+Use the **`azsdk-common-generate-sdk-locally`** skill's changelog capability (`azsdk_package_update_changelog_content`) to update `CHANGELOG.md` in the `sdk/ai/azure-ai-projects` folder with a summary of changes from the TypeSpec emit.
 
 Show the user the proposed changelog entry and ask for confirmation or edits before saving.
 
 ---
 
-## Step 7: Update samples and tests
+## Step 8: Update samples and tests
 
-If there were any breaking changes in existing APIs, like class or method renames, update the 
-samples and tests accordingly to reflect those changes. Changes should be made in the "samples" 
-and "tests" folders under `sdk/ai/azure-ai-projects`.
+If there were any breaking changes in existing APIs, like class or method renames, update the samples and tests accordingly to reflect those changes. Changes should be made in the "samples" and "tests" folders under `sdk/ai/azure-ai-projects`.
 
 ---
 
-## Step 8: Commit and push
+## Step 9: Commit and push
 
 Stage all changes (excluding file names that start with `.env`), commit, and push the topic branch:
 
@@ -143,7 +128,7 @@ git push -u origin <topic-branch>
 
 ---
 
-## Step 9: Create a Pull Request
+## Step 10: Create a Pull Request
 
 Create a PR from the **topic branch** to the **base branch** (recorded in Step 2):
 
@@ -151,8 +136,7 @@ Create a PR from the **topic branch** to the **base branch** (recorded in Step 2
 gh pr create --base <BASE_BRANCH> --head <topic-branch> --title "<PR title>" --body "<PR body>"
 ```
 
-- **Title:** Use a descriptive title such as
-  `[azure-ai-projects] Emit SDK from TypeSpec (<short description>)`.
+- **Title:** Use a descriptive title such as `[azure-ai-projects] Emit SDK from TypeSpec (<short description>)`.
 - **Body:** Include which TypeSpec source was used and a summary of the changelog entry.
 
 Show the user the PR URL when done.
