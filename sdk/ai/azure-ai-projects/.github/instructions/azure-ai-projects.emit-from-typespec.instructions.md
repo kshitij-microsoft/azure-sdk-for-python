@@ -1,7 +1,7 @@
 # Emit azure-ai-projectsPython SDK from TypeSpec
 
 These instructions guide Copilot through emitting the azure-ai-projects Python SDK from TypeSpec,
-applying post-emitter fixes, updating the changelog, and creating a Pull Request.
+applying post-emitter fixes, updating the changelog, installing package from sources and creating a Pull Request.
 
 **Working directory:** `sdk/ai/azure-ai-projects`
 
@@ -21,7 +21,7 @@ Ask the user to choose **one** of the following two options for the target topic
 
 1. **Create a new topic branch** (this should be the default options) – Create a new topic branch for the emitted changes. If selected, ask for a topic branch name. Mention that the expected format is `<github-userid>/<work-title>`.
 
-2. **Emit to current branch** – Emit directly to the current branch without creating a new topic branch. This is not common, but may be necessary if the user is re-running this workflow because of a previous failure, where the topic branch was already created. If the current branch is named `feature/azure-ai-projects/2.2.0` then stop and report that they cannot emit directly to the current feature branch.
+2. **Emit to current branch** – Emit directly to the current branch without creating a new topic branch. This is not common, but may be necessary if the user is re-running this workflow because of a previous failure, where the topic branch was already created. If the current branch is named `feature/azure-ai-projects/2.2.0` then  and report that they cannot emit directly to the current feature branch.stop
 
 ### 1b. TypeSpec source
 
@@ -100,7 +100,13 @@ If a new enum value was added to `_AgentDefinitionOptInKeys`, please print a not
 
 ---
 
-## Step 7: Update CHANGELOG.md
+## Step 7: Install package from sources
+
+In the folder `sdk\ai\azure-ai-projects`, run `pip install -e .` to install the package from sources. If there are any errors, stop and report the error to the user. Do not continue.
+
+---
+
+## Step 8: Update CHANGELOG.md
 
 Use the **`azsdk-common-generate-sdk-locally`** skill's changelog capability (`azsdk_package_update_changelog_content`) to update `CHANGELOG.md` in the `sdk/ai/azure-ai-projects` folder with a summary of changes from the TypeSpec emit.
 
@@ -108,13 +114,13 @@ Show the user the proposed changelog entry and ask for confirmation or edits bef
 
 ---
 
-## Step 8: Update samples and tests
+## Step 9: Update samples and tests
 
 If there were any breaking changes in existing APIs, like class or method renames, update the samples and tests accordingly to reflect those changes. Changes should be made in the "samples" and "tests" folders under `sdk/ai/azure-ai-projects`.
 
 ---
 
-## Step 9: Commit and push
+## Step 10: Commit and push
 
 Stage all changes (excluding file names that start with `.env`), commit, and push the topic branch:
 
@@ -128,7 +134,7 @@ git push -u origin <topic-branch>
 
 ---
 
-## Step 10: Create a Pull Request
+## Step 11: Create a Pull Request
 
 Create a PR from the **topic branch** to the **base branch** (recorded in Step 2):
 
@@ -140,3 +146,6 @@ gh pr create --base <BASE_BRANCH> --head <topic-branch> --title "<PR title>" --b
 - **Body:** Include which TypeSpec source was used and a summary of the changelog entry.
 
 Show the user the PR URL when done.
+
+---
+
