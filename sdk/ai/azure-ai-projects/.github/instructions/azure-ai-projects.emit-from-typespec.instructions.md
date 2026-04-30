@@ -111,7 +111,26 @@ team if it is not working.
 
 ---
 
-## Step 6: Update CHANGELOG.md
+## Step 6: Fix patched code
+
+The emitted code may have introduced another beta sub-client (a new property on class `BetaOperations`).
+It may have also added another enum value to the existing internal class `_FoundryFeaturesOptInKeys`. This means
+that the client library needs to set a new HTTP request header when making REST API calls to the service, 
+to opt-in to the new service features which are still in preview.
+If that's the case, update the dictionary `_BETA_OPERATION_FEATURE_HEADERS` defined in
+`azure\ai\projects\models\_patch.py`, to include a new key-value pair to map the new beta sub-client
+name to the proper value from `_FoundryFeaturesOptInKeys`. If no new beta sub-client was introduced,
+but a new enum value was added to `_FoundryFeaturesOptInKeys`, you will need to update one of the existing 
+key-value pairs in `_BETA_OPERATION_FEATURE_HEADERS` to a comma-separated join of multiple values from
+`_FoundryFeaturesOptInKeys`.
+
+If a new enum value was added to `_AgentDefinitionOptInKeys`, please print a note on screen that
+mentions which value was added, and tell the user that a review is needed to make sure this new
+value is properly used. But otherwise continue on.
+
+---
+
+## Step 7: Update CHANGELOG.md
 
 Use the **`azsdk-common-generate-sdk-locally`** skill's changelog capability
 (`azsdk_package_update_changelog_content`) to update `CHANGELOG.md` in the
@@ -121,7 +140,7 @@ Show the user the proposed changelog entry and ask for confirmation or edits bef
 
 ---
 
-## Step 7: Update samples and tests
+## Step 8: Update samples and tests
 
 If there were any breaking changes in existing APIs, like class or method renames, update the 
 samples and tests accordingly to reflect those changes. Changes should be made in the "samples" 
@@ -129,7 +148,7 @@ and "tests" folders under `sdk/ai/azure-ai-projects`.
 
 ---
 
-## Step 8: Commit and push
+## Step 9: Commit and push
 
 Stage all changes (excluding file names that start with `.env`), commit, and push the topic branch:
 
@@ -143,7 +162,7 @@ git push -u origin <topic-branch>
 
 ---
 
-## Step 9: Create a Pull Request
+## Step 10: Create a Pull Request
 
 Create a PR from the **topic branch** to the **base branch** (recorded in Step 2):
 
