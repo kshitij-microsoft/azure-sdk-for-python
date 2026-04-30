@@ -1,4 +1,4 @@
-# Emit Python SDK from TypeSpec
+# Emit azure-ai-projectsPython SDK from TypeSpec
 
 These instructions guide Copilot through emitting the azure-ai-projects Python SDK from TypeSpec,
 applying post-emitter fixes, updating the changelog, and creating a Pull Request.
@@ -29,7 +29,7 @@ then stop and report that they cannot emit directly to the current feature branc
 
 2. **Create a new topic branch** – Create a new topic branch for the emitted changes. If selected, ask
  for a topic branch name. Mention that the expected format is
-`<github-userid>/<work-title>` (e.g. `dargilco/emit-from-typespec-04-29-2026`).
+`<github-userid>/<work-title>`.
 
 ### 1b. TypeSpec source
 
