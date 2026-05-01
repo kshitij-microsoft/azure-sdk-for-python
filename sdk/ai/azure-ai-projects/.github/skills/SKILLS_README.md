@@ -16,14 +16,15 @@
 
 * Open VSCode in the current folder.
 * Open the CoPilot chat window ("Toggle Chat").
-* Start typing "/azure-ai-projects" and press tab to auto complete it to `/azure-ai-projects-emit-from-typespec`, then press Enter.
+* Make sure you are in "Agent" mode.
+* Start typing `/azure-ai-projects` and press tab to auto complete it to `/azure-ai-projects-emit-from-typespec`, then press Enter.
 * Answer some questions and approve execution to go through the workflow
 
 ### Using CoPilot CLI or Agency Copilot CLI
 
 * Install [GitHub CoPilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli) or [Agency CoPilot CLI](https://aka.ms/agency) (VPN required) if you don't already have it.
 * Run CoPilot CLI by typing `copilot`
-* Start typing "/azure-ai-projects" and press tab to auto complete it to `/azure-ai-projects-emit-from-typespec`, then press Enter.
+* Start typing `/azure-ai-projects` and press tab to auto complete it to `/azure-ai-projects-emit-from-typespec`, then press Enter.
 * Answer some questions and approve execution to go through the workflow
 
 
