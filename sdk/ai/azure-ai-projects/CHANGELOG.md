@@ -8,13 +8,17 @@
 * New Agent tool `ToolboxSearchPreviewTool`.
 * New `.beta.datasets` sub-client with data generation job operations: `create_generation_job`, `get_generation_job`, `list_generation_jobs`, `cancel_generation_job`, `delete_generation_job`.
 * New read-only property `content_hash` on `CodeConfiguration`, returning the SHA-256 hex digest of the uploaded code zip.
+* New evaluator generation job operations on `.beta.evaluators`: `create_generation_job`, `get_generation_job`, `list_generation_jobs`, `cancel_generation_job`, `delete_generation_job`.
 
 ### Breaking Changes
 
+Breaking changes in beta operations:
 * Renamed model `AgentEndpoint` to `AgentEndpointConfig`.
-* Agent Endpoint beta operations: Removed required parameters `user_isolation_key` and `chat_isolation_key` from the `HeaderIsolationKeySource` class constructor.
+* Required property `isolation_key_source` removed from class `EntraAuthorizationScheme`.
+* Required keyword argument `isolation_key` removed from `.beta.agents.create_session()` and `.beta.agents.delete_session()` methods.
 
 ### Bugs Fixed
+
 * Fixed telemetry instrumentor to correctly call is_recording() as a method on spans, ensuring non-recording spans are properly skipped (e.g., when sampling is configured) ([GitHub issue 46544](https://github.com/Azure/azure-sdk-for-python/issues/46544)).
 
 ### Sample updates
