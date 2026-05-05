@@ -16,6 +16,7 @@ Breaking changes in beta operations:
 * Renamed model `AgentEndpoint` to `AgentEndpointConfig`.
 * Required property `isolation_key_source` removed from class `EntraAuthorizationScheme`.
 * Required keyword argument `isolation_key` removed from `.beta.agents.create_session()` and `.beta.agents.delete_session()` methods.
+* Argument `body` in methods `.beta.evaluation_taxonomies.create()` and `.beta.evaluation_taxonomies.update()` renamed to `taxonomy`.
 
 ### Bugs Fixed
 
