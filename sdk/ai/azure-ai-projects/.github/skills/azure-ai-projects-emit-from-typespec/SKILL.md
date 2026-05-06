@@ -155,10 +155,10 @@ git push -u origin <topic-branch>
 
 ## Step 11: Create a Pull Request
 
-Create a PR from the **topic branch** to the **base branch** (recorded in Step 2):
+Create a draft PR from the **topic branch** to the **base branch** (recorded in Step 2):
 
 ```
-gh pr create --base <BASE_BRANCH> --head <topic-branch> --assignee @me --title "<PR title>" --body "<PR body>"
+gh pr create --draft --base <BASE_BRANCH> --head <topic-branch> --assignee @me --title "<PR title>" --body "<PR body>"
 ```
 
 - **Title:** Use a descriptive title such as `[azure-ai-projects] Emit SDK from TypeSpec (<short description>)`.
