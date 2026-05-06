@@ -124,9 +124,12 @@ In the folder `sdk\ai\azure-ai-projects`, run `pip install -e .` to install the 
 
 ## Step 8: Update CHANGELOG.md
 
-Use the **`azsdk-common-generate-sdk-locally`** skill's changelog capability (`azsdk_package_update_changelog_content`) to update `CHANGELOG.md` in the `sdk/ai/azure-ai-projects` folder with a summary of changes from the TypeSpec emit.
-
-Show the user the proposed changelog entry and ask for confirmation or edits before saving.
+Use the **`azsdk-common-generate-sdk-locally`** skill's changelog capability (`azsdk_package_update_changelog_content`) to update `CHANGELOG.md` in the `sdk/ai/azure-ai-projects` folder with a summary of changes from the TypeSpec emit. Some guidelines to follow:
+* Start by examining the public SDK API surface of the latest released version of the azure-ai-projects package. The source code for this version can be found in the Main branch of the `azure-sdk-for-python` repository, in the folder `sdk\ai\azure-ai-projects`. 
+* Then compare it to the public SDK API surface of current version in this topic branch. 
+* Look at the existing change log from the latest version (if exists) and edit or add to it to capture all the changes you see. If a change log does not exist for the current version at the top of `CHANGELOG.md`, create a new one.
+* If a new method was added, there is no need to add the list of all new classes that define the inputs and output of the method. It's enough to mention that the new method was added.
+* Show the user the proposed changelog entry and ask for confirmation or edits before saving.
 
 ---
 
@@ -169,6 +172,15 @@ Show the user the PR URL when done.
 
 Prompt the user with this message: "Tests will run as part of the Pull Request. However, you can optionally run tests locally right now. It will take a few minutes. Do you want to run tests locally now? (yes/no)"
 
-If the user answers "yes", run all tests.
+If the user answers "yes", run all tests from recordings. Follow these guidelines:
+* Run tests in a local Python virtual environment. Create this virtual environment if it does not already exists:
+  ```
+  python -m venv .venv
+  ```
+  and activate it:
+  ```
+  .venv\Scripts\activate
+  ```
+* Show test progress on screen, as tests are run.
 
-```
+
