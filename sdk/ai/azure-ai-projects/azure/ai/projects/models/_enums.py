@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 # coding=utf-8
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -71,8 +72,8 @@ class AgentEndpointProtocol(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """ACTIVITY."""
     RESPONSES = "responses"
     """RESPONSES."""
-    A2A = "a2a"
-    """A2A."""
+    A2_A = "a2a"
+    """A2_A."""
     INVOCATIONS = "invocations"
     """INVOCATIONS."""
 
@@ -526,6 +527,61 @@ class EvaluatorType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Custom evaluator."""
 
 
+class FoundryModelArtifactProfileCategory(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """The artifact profile category."""
+
+    DATA_ONLY = "DataOnly"
+    """Data only artifacts."""
+    RUNTIME_DEPENDENT = "RuntimeDependent"
+    """Runtime dependent artifacts."""
+    UNKNOWN = "Unknown"
+    """Unknown category."""
+
+
+class FoundryModelArtifactProfileSignal(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """Signals detected in the model artifact."""
+
+    PICKLE_DESERIALIZATION = "PickleDeserialization"
+    """Pickle deserialization detected."""
+    CUSTOM_PYTHON_CODE = "CustomPythonCode"
+    """Custom Python code detected."""
+    DYNAMIC_OPS = "DynamicOps"
+    """Dynamic operations detected."""
+    NATIVE_BINARY = "NativeBinary"
+    """Native binary code detected."""
+    UNKNOWN_FORMAT = "UnknownFormat"
+    """Unknown format detected."""
+
+
+class FoundryModelSourceType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """The source type of the model."""
+
+    LOCAL_UPLOAD = "LocalUpload"
+    """Model was uploaded locally."""
+    TRAINING_JOB = "TrainingJob"
+    """Model was produced by a training job."""
+
+
+class FoundryModelWarningCode(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """Warning code for model artifacts."""
+
+    RUNTIME_DEPENDENT_ARTIFACT = "RuntimeDependentArtifact"
+    """Runtime dependent artifact warning."""
+    UNCLASSIFIED_ARTIFACT = "UnclassifiedArtifact"
+    """Unclassified artifact warning."""
+
+
+class FoundryModelWeightType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """The weight type of the model."""
+
+    FULL_WEIGHT = "FullWeight"
+    """Full weight model."""
+    LO_RA = "LoRA"
+    """LoRA adapter weights."""
+    DRAFT_MODEL = "DraftModel"
+    """Draft model weights."""
+
+
 class FunctionShellToolParamEnvironmentType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Type of FunctionShellToolParamEnvironmentType."""
 
@@ -705,8 +761,8 @@ class PendingUploadType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
 
     NONE = "None"
     """No pending upload."""
-    BLOB_REFERENCE = "BlobReference"
-    """Blob Reference is the only supported type."""
+    TEMPORARY_BLOB_REFERENCE = "TemporaryBlobReference"
+    """Temporary blob reference."""
 
 
 class RankerVersionType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
@@ -714,8 +770,8 @@ class RankerVersionType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
 
     AUTO = "auto"
     """AUTO."""
-    DEFAULT_2024_11_15 = "default-2024-11-15"
-    """DEFAULT_2024_11_15."""
+    DEFAULT2024_11_15 = "default-2024-11-15"
+    """DEFAULT2024_11_15."""
 
 
 class RecurrenceType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
@@ -882,8 +938,8 @@ class ToolChoiceParamType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """WEB_SEARCH_PREVIEW."""
     COMPUTER_USE_PREVIEW = "computer_use_preview"
     """COMPUTER_USE_PREVIEW."""
-    WEB_SEARCH_PREVIEW_2025_03_11 = "web_search_preview_2025_03_11"
-    """WEB_SEARCH_PREVIEW_2025_03_11."""
+    WEB_SEARCH_PREVIEW2025_03_11 = "web_search_preview_2025_03_11"
+    """WEB_SEARCH_PREVIEW2025_03_11."""
     IMAGE_GENERATION = "image_generation"
     """IMAGE_GENERATION."""
     CODE_INTERPRETER = "code_interpreter"
