@@ -7,7 +7,7 @@
 
 These tests exercise the generated ``BetaModelsOperations`` (``list``,
 ``list_versions``, ``get``, ``pending_upload``, ``get_credentials``, ``delete``)
-and the patched ``register_model`` end-to-end helper. They follow the same
+and the patched ``models_create`` end-to-end helper. They follow the same
 "upload + record" pattern used by ``test_datasets.py``.
 
 ``create_or_update`` is intentionally not tested here. The Foundry data plane
@@ -15,6 +15,7 @@ currently returns ``404 Not Found`` for that route even when ``GET`` for the
 same name/version succeeds. The cell will be re-enabled once the service-side
 issue is fixed.
 """
+
 import os
 
 import pytest
@@ -39,10 +40,10 @@ data_folder = os.environ.get("DATA_FOLDER", os.path.join(script_dir, "../test_da
 )
 class TestModels(TestBase):
 
-    # cls & pytest tests\models\test_models.py::TestModels::test_models_register_model -s
+    # cls & pytest tests\models\test_models.py::TestModels::test_models_models_create -s
     @servicePreparer()
     @recorded_by_proxy
-    def test_models_register_model(self, **kwargs):
+    def test_models_models_create(self, **kwargs):
         """End-to-end: pending_upload -> azcopy -> create_async -> get/list/delete."""
         model_name = self.test_models_params["model_name_1"]
         model_version = self.test_models_params["model_version"]
@@ -51,40 +52,40 @@ class TestModels(TestBase):
 
         with self.create_client(**kwargs) as project_client:
 
-            print(f"[test_models_register_model] register_model {model_name}@{model_version}")
-            registered = project_client.beta.models.register_model(
+            print(f"[test_models_models_create] models_create {model_name}@{model_version}")
+            registered = project_client.beta.models.models_create(
                 name=model_name,
                 version=model_version,
                 source=data_folder,
                 weight_type="FullWeight",
-                description="Registered by test_models_register_model",
+                description="Registered by test_models_models_create",
                 tags={"source": "test_models.py"},
             )
             assert registered is not None
             assert registered.name == expected_model_name
             assert registered.version == model_version
-            assert registered.blob_uri, "blob_uri should be populated after register_model"
+            assert registered.blob_uri, "blob_uri should be populated after models_create"
 
-            print(f"[test_models_register_model] get {model_name}@{model_version}")
+            print(f"[test_models_models_create] get {model_name}@{model_version}")
             fetched = project_client.beta.models.get(name=model_name, version=model_version)
             assert fetched.id == registered.id
             assert fetched.name == expected_model_name
             assert fetched.version == model_version
 
-            print(f"[test_models_register_model] list_versions({model_name!r})")
+            print(f"[test_models_models_create] list_versions({model_name!r})")
             versions = list(project_client.beta.models.list_versions(name=model_name))
             assert any(
                 mv.version == model_version for mv in versions
             ), f"version {model_version!r} not found in list_versions"
 
-            print("[test_models_register_model] list (latest of every model)")
+            print("[test_models_models_create] list (latest of every model)")
             empty = True
             for mv in project_client.beta.models.list():
                 empty = False
                 assert mv.name and mv.version
             assert not empty, "list() returned no models even though we just registered one"
 
-            print(f"[test_models_register_model] get_credentials {model_name}@{model_version}")
+            print(f"[test_models_models_create] get_credentials {model_name}@{model_version}")
             from azure.ai.projects.models import ModelCredentialRequest
 
             creds = project_client.beta.models.get_credentials(
@@ -98,7 +99,7 @@ class TestModels(TestBase):
             assert blob_ref.credential is not None
             assert blob_ref.credential.sas_uri
 
-            print(f"[test_models_register_model] delete {model_name}@{model_version}")
+            print(f"[test_models_models_create] delete {model_name}@{model_version}")
             try:
                 project_client.beta.models.delete(name=model_name, version=model_version)
             except HttpResponseError as ex:
@@ -107,7 +108,7 @@ class TestModels(TestBase):
                 if ex.status_code != 200:
                     raise
 
-            print(f"[test_models_register_model] get on deleted {model_name}@{model_version} should 404")
+            print(f"[test_models_models_create] get on deleted {model_name}@{model_version} should 404")
             with pytest.raises((ResourceNotFoundError, HttpResponseError)):
                 project_client.beta.models.get(name=model_name, version=model_version)
 

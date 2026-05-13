@@ -7,9 +7,10 @@
 
 These tests do not contact the Foundry service. They cover the patch helpers
 ``_extract_pending_upload_targets`` and ``_run_azcopy``, and the orchestration
-performed by ``register_model`` (mocking ``pending_upload``, ``create_async``
+performed by ``models_create`` (mocking ``pending_upload``, ``create_async``
 and ``get`` on the base class).
 """
+
 from __future__ import annotations
 
 import os
@@ -23,7 +24,6 @@ import pytest
 from azure.core.exceptions import ResourceNotFoundError
 
 from azure.ai.projects.operations._patch_models import BetaModelsOperations
-
 
 # ---------------------------------------------------------------------------
 # _extract_pending_upload_targets
@@ -169,7 +169,7 @@ class TestRunAzcopy:
 
 
 # ---------------------------------------------------------------------------
-# register_model orchestration
+# models_create orchestration
 # ---------------------------------------------------------------------------
 
 
@@ -188,8 +188,17 @@ def _pending_payload() -> dict:
     }
 
 
-class TestRegisterModelOrchestration:
-    def test_register_model_runs_three_steps_in_order_and_returns_get_result(self, tmp_path):
+class TestModelsCreateOrchestration:
+    @pytest.fixture(autouse=True)
+    def _stub_azcopy_on_path(self):
+        """Pretend azcopy is installed so the up-front validator passes."""
+        with mock.patch(
+            "azure.ai.projects.operations._patch_models.shutil.which",
+            return_value="/usr/bin/azcopy",
+        ):
+            yield
+
+    def test_models_create_runs_three_steps_in_order_and_returns_get_result(self, tmp_path):
         (tmp_path / "weights.bin").write_bytes(b"x")
         ops = _make_ops()
 
@@ -235,7 +244,7 @@ class TestRegisterModelOrchestration:
         ), mock.patch.object(ops, "create_async", side_effect=fake_create_async), mock.patch.object(
             ops, "get", side_effect=fake_get
         ):
-            result = ops.register_model(
+            result = ops.models_create(
                 name="my-model",
                 version="1",
                 source=tmp_path,
@@ -248,7 +257,7 @@ class TestRegisterModelOrchestration:
         assert result is committed
         assert calls == ["pending_upload", "azcopy", "create_async", "get"]
 
-    def test_register_model_wait_for_commit_false_returns_none_and_does_not_poll(self, tmp_path):
+    def test_models_create_wait_for_commit_false_returns_none_and_does_not_poll(self, tmp_path):
         (tmp_path / "weights.bin").write_bytes(b"x")
         ops = _make_ops()
         get_mock = mock.Mock()
@@ -256,7 +265,7 @@ class TestRegisterModelOrchestration:
         with mock.patch.object(ops, "pending_upload", return_value=_pending_payload()), mock.patch.object(
             BetaModelsOperations, "_run_azcopy", staticmethod(lambda *a, **kw: None)
         ), mock.patch.object(ops, "create_async", return_value=None), mock.patch.object(ops, "get", get_mock):
-            result = ops.register_model(
+            result = ops.models_create(
                 name="m",
                 version="1",
                 source=tmp_path,
@@ -266,7 +275,7 @@ class TestRegisterModelOrchestration:
         assert result is None
         get_mock.assert_not_called()
 
-    def test_register_model_polls_until_get_succeeds(self, tmp_path):
+    def test_models_create_polls_until_get_succeeds(self, tmp_path):
         (tmp_path / "weights.bin").write_bytes(b"x")
         ops = _make_ops()
         committed = SimpleNamespace(name="m", version="1")
@@ -286,7 +295,7 @@ class TestRegisterModelOrchestration:
         ), mock.patch(
             "azure.ai.projects.operations._patch_models.time.sleep"
         ) as sleep:
-            result = ops.register_model(
+            result = ops.models_create(
                 name="m",
                 version="1",
                 source=tmp_path,
@@ -297,7 +306,7 @@ class TestRegisterModelOrchestration:
         assert get_mock.call_count == 3
         assert sleep.call_count == 2
 
-    def test_register_model_polling_timeout_raises_runtime_error(self, tmp_path):
+    def test_models_create_polling_timeout_raises_runtime_error(self, tmp_path):
         (tmp_path / "weights.bin").write_bytes(b"x")
         ops = _make_ops()
 
@@ -314,18 +323,118 @@ class TestRegisterModelOrchestration:
             "azure.ai.projects.operations._patch_models.time.sleep"
         ):
             with pytest.raises(RuntimeError, match="did not appear within"):
-                ops.register_model(
+                ops.models_create(
                     name="m",
                     version="1",
                     source=tmp_path,
                     polling_timeout=1.0,
                 )
 
-    def test_register_model_missing_source_raises_before_calling_service(self, tmp_path):
+    def test_models_create_missing_source_raises_before_calling_service(self, tmp_path):
         ops = _make_ops()
         ghost = tmp_path / "does-not-exist"
         pending = mock.Mock()
         with mock.patch.object(ops, "pending_upload", pending):
             with pytest.raises(ValueError, match="does not exist"):
-                ops.register_model(name="m", version="1", source=ghost)
+                ops.models_create(name="m", version="1", source=ghost)
+        pending.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# _validate_models_create_inputs
+# ---------------------------------------------------------------------------
+
+
+class TestValidateModelsCreateInputs:
+    @pytest.fixture(autouse=True)
+    def _stub_azcopy_on_path(self):
+        with mock.patch(
+            "azure.ai.projects.operations._patch_models.shutil.which",
+            return_value="/usr/bin/azcopy",
+        ):
+            yield
+
+    def _kwargs(self, **overrides):
+        defaults = dict(
+            name="m",
+            version="1",
+            source="/tmp/x",
+            azcopy_path=None,
+            wait_for_commit=True,
+            polling_timeout=300.0,
+            polling_interval=2.0,
+        )
+        defaults.update(overrides)
+        return defaults
+
+    def test_valid_directory_source_returns_path(self, tmp_path):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        result = BetaModelsOperations._validate_models_create_inputs(**self._kwargs(source=tmp_path))
+        assert result == tmp_path
+
+    @pytest.mark.parametrize("bad_name", ["", "   ", None, 123])
+    def test_empty_or_non_string_name_raises(self, tmp_path, bad_name):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        with pytest.raises(ValueError, match="`name`"):
+            BetaModelsOperations._validate_models_create_inputs(**self._kwargs(name=bad_name, source=tmp_path))
+
+    @pytest.mark.parametrize("bad_version", ["", "   ", None, 1])
+    def test_empty_or_non_string_version_raises(self, tmp_path, bad_version):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        with pytest.raises(ValueError, match="`version`"):
+            BetaModelsOperations._validate_models_create_inputs(**self._kwargs(version=bad_version, source=tmp_path))
+
+    def test_empty_directory_raises(self, tmp_path):
+        with pytest.raises(ValueError, match="directory is empty"):
+            BetaModelsOperations._validate_models_create_inputs(**self._kwargs(source=tmp_path))
+
+    def test_empty_file_raises(self, tmp_path):
+        empty = tmp_path / "weights.bin"
+        empty.write_bytes(b"")
+        with pytest.raises(ValueError, match="file is empty"):
+            BetaModelsOperations._validate_models_create_inputs(**self._kwargs(source=empty))
+
+    @pytest.mark.parametrize("bad_timeout", [0, -1.0])
+    def test_non_positive_polling_timeout_raises(self, tmp_path, bad_timeout):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        with pytest.raises(ValueError, match="polling_timeout"):
+            BetaModelsOperations._validate_models_create_inputs(
+                **self._kwargs(source=tmp_path, polling_timeout=bad_timeout)
+            )
+
+    @pytest.mark.parametrize("bad_interval", [0, -1.0])
+    def test_non_positive_polling_interval_raises(self, tmp_path, bad_interval):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        with pytest.raises(ValueError, match="polling_interval"):
+            BetaModelsOperations._validate_models_create_inputs(
+                **self._kwargs(source=tmp_path, polling_interval=bad_interval)
+            )
+
+    def test_polling_params_skipped_when_wait_for_commit_false(self, tmp_path):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        # Negative polling values are tolerated when not waiting for commit.
+        result = BetaModelsOperations._validate_models_create_inputs(
+            **self._kwargs(source=tmp_path, wait_for_commit=False, polling_timeout=-1, polling_interval=-1)
+        )
+        assert result == tmp_path
+
+    def test_missing_azcopy_raises(self, tmp_path):
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        with mock.patch(
+            "azure.ai.projects.operations._patch_models.shutil.which",
+            return_value=None,
+        ):
+            with pytest.raises(RuntimeError, match="azcopy"):
+                BetaModelsOperations._validate_models_create_inputs(**self._kwargs(source=tmp_path))
+
+    def test_models_create_validates_before_calling_pending_upload(self, tmp_path):
+        """Validation runs before any service operation."""
+        (tmp_path / "weights.bin").write_bytes(b"x")
+        ops = _make_ops()
+        pending = mock.Mock()
+        with mock.patch.object(ops, "pending_upload", pending), mock.patch(
+            "azure.ai.projects.operations._patch_models.shutil.which", return_value=None
+        ):
+            with pytest.raises(RuntimeError, match="azcopy"):
+                ops.models_create(name="m", version="1", source=tmp_path)
         pending.assert_not_called()

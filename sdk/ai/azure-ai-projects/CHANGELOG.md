@@ -11,8 +11,8 @@
 * New evaluator generation job operations on `.beta.evaluators`: `create_generation_job`, `get_generation_job`, `list_generation_jobs`, `cancel_generation_job`, `delete_generation_job`.
 * New methods on `.beta.agents` sub-client for code-based hosted agents: `update_agent_from_code()`, `create_agent_version_from_code()`, `download_agent_version_code()`, `download_agent_code()`.
 * New read-only property `content_hash` on `CodeConfiguration`, returning the SHA-256 hex digest of the uploaded code zip.
-* New `.beta.models` sub-client for registering and managing local model weights as Foundry `ModelVersion` resources, with operations: `register_model`, `list`, `list_versions`, `get`, `update`, `delete`, `pending_upload`, `create_async`, `get_credentials`.
-* New convenience method `.beta.models.register_model()` that wraps the spec's three-step upload-first sequence (`pending_upload` → `azcopy copy` → `create_async`) and polls `get()` until the new `ModelVersion` is observable.
+* New `.beta.models` sub-client for registering and managing local model weights as Foundry `ModelVersion` resources. Generated operations: `list`, `list_versions`, `get`, `update`, `delete`, `pending_upload`, `create_async`, `get_credentials`.
+* New convenience method `.beta.models.models_create()` that wraps the spec's three-step upload-first sequence (`pending_upload` → `azcopy copy` → `create_async`) and polls `get()` until the new `ModelVersion` is observable.
 
 ### Breaking Changes
 
@@ -42,8 +42,9 @@ Breaking changes in beta classes:
 * The Hosted Agent creation sample also demonstrates assigning the hosted agent managed identity the Azure AI User RBAC role on the backing Azure AI account.
 * Updated the other Hosted Agent samples to reuse an existing Hosted Agent as a prerequisite, instead of creating a new hosted agent version in each sample.
 * Added `.beta.models` samples under `samples/models/`:
-  * `sample_models.py` — end-to-end registration via the `register_model` helper (uses `azcopy`), followed by `get`, `list_versions`, `list`, `get_credentials`, `update`, and `delete`.
-  * `sample_models_pending_upload.py` — alternative registration that hand-rolls the spec's three-step flow (`pending_upload` → upload via `azure-storage-blob` → `create_async` + poll), without taking a dependency on `azcopy`.
+  * `sample_models.py` — synchronous end-to-end registration via the `models_create` helper (uses `azcopy`), followed by `get`, `list_versions`, `list`, `get_credentials`, `update`, and `delete`.
+  * `sample_models_without_patch.py` — alternative synchronous registration that hand-rolls the spec's three-step flow (`pending_upload` → upload via `azure-storage-blob` → `create_async` + poll), without taking a dependency on `azcopy`.
+  * `sample_models_async.py` — asynchronous version of the same three-step flow using `azure.ai.projects.aio.AIProjectClient` and `azure.storage.blob.aio.ContainerClient`.
 
 ## 2.1.0 (2026-04-20)
 

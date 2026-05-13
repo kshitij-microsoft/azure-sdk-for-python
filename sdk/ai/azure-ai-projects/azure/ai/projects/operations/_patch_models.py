@@ -64,8 +64,8 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
         return sas_uri, container_blob_uri, pending_upload_id
 
     @staticmethod
-    def _run_azcopy(source: Path, sas_uri: str, *, azcopy_path: Optional[str] = None) -> None:
-        """Shell out to ``azcopy copy`` to upload ``source`` to the SAS container."""
+    def _resolve_azcopy(azcopy_path: Optional[str] = None) -> str:
+        """Locate the ``azcopy`` executable or raise ``RuntimeError``."""
         azcopy = azcopy_path or shutil.which("azcopy")
         if not azcopy:
             raise RuntimeError(
@@ -73,6 +73,51 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
                 "(https://aka.ms/downloadazcopy) and ensure it is on PATH, or "
                 "pass `azcopy_path=` explicitly."
             )
+        return azcopy
+
+    @staticmethod
+    def _validate_models_create_inputs(
+        *,
+        name: str,
+        version: str,
+        source: Union[str, "os.PathLike[str]"],
+        azcopy_path: Optional[str],
+        wait_for_commit: bool,
+        polling_timeout: float,
+        polling_interval: float,
+    ) -> Path:
+        """Validate ``models_create`` inputs up-front, before any service call.
+
+        Returns the resolved ``Path`` for ``source``. Raises ``ValueError`` for
+        bad inputs and ``RuntimeError`` if ``azcopy`` cannot be located.
+        """
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("`name` must be a non-empty string.")
+        if not isinstance(version, str) or not version.strip():
+            raise ValueError("`version` must be a non-empty string.")
+
+        source_path = Path(os.fspath(source))
+        if not source_path.exists():
+            raise ValueError(f"Upload source does not exist: {source_path}")
+        if source_path.is_dir() and not any(p.is_file() for p in source_path.rglob("*")):
+            raise ValueError(f"Upload source directory is empty: {source_path}")
+        if source_path.is_file() and source_path.stat().st_size == 0:
+            raise ValueError(f"Upload source file is empty: {source_path}")
+
+        if wait_for_commit:
+            if polling_timeout <= 0:
+                raise ValueError("`polling_timeout` must be > 0 when `wait_for_commit` is True.")
+            if polling_interval <= 0:
+                raise ValueError("`polling_interval` must be > 0 when `wait_for_commit` is True.")
+
+        # Fail fast if azcopy isn't installed, before we provision a SAS container.
+        BetaModelsOperations._resolve_azcopy(azcopy_path)
+        return source_path
+
+    @staticmethod
+    def _run_azcopy(source: Path, sas_uri: str, *, azcopy_path: Optional[str] = None) -> None:
+        """Shell out to ``azcopy copy`` to upload ``source`` to the SAS container."""
+        azcopy = BetaModelsOperations._resolve_azcopy(azcopy_path)
 
         if source.is_dir():
             src_arg = str(source / "*")
@@ -94,13 +139,13 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
         # Don't log the SAS query string — it's a credential.
         redacted = cmd.copy()
         redacted[3] = sas_uri.split("?", 1)[0] + "?<sas-redacted>"
-        logger.info("[register_model] running: %s", " ".join(redacted))
+        logger.info("[models_create] running: %s", " ".join(redacted))
 
         completed = subprocess.run(cmd, check=False, capture_output=True, text=True)
         if completed.stdout:
-            logger.debug("[register_model] azcopy stdout:\n%s", completed.stdout)
+            logger.debug("[models_create] azcopy stdout:\n%s", completed.stdout)
         if completed.stderr:
-            logger.debug("[register_model] azcopy stderr:\n%s", completed.stderr)
+            logger.debug("[models_create] azcopy stderr:\n%s", completed.stderr)
         if completed.returncode != 0:
             raise RuntimeError(
                 f"azcopy exited with code {completed.returncode}.\n"
@@ -108,7 +153,7 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
             )
 
     @distributed_trace
-    def register_model(
+    def models_create(
         self,
         *,
         name: str,
@@ -168,19 +213,29 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
         :return: The committed :class:`~azure.ai.projects.models.ModelVersion`
             when ``wait_for_commit`` is True, otherwise ``None``.
         :rtype: ~azure.ai.projects.models.ModelVersion or None
-        :raises ValueError: If ``source`` does not exist or the pending-upload
-            response is missing the SAS / blob URI.
+        :raises ValueError: If ``name``/``version`` are empty, ``source`` does
+            not exist or is empty, polling parameters are non-positive, or the
+            pending-upload response is missing the SAS / blob URI.
         :raises RuntimeError: If ``azcopy`` is not on PATH or exits with a
             non-zero status, or the registration does not commit before
             ``polling_timeout`` elapses.
         """
-        source_path = Path(os.fspath(source))
-        if not source_path.exists():
-            raise ValueError(f"Upload source does not exist: {source_path}")
+        # --- Step 0: validate inputs up-front --------------------------------
+        # Cheap local checks so we don't provision a SAS container or run
+        # azcopy when something obviously wrong was passed in.
+        source_path = self._validate_models_create_inputs(
+            name=name,
+            version=version,
+            source=source,
+            azcopy_path=azcopy_path,
+            wait_for_commit=wait_for_commit,
+            polling_timeout=polling_timeout,
+            polling_interval=polling_interval,
+        )
 
         # --- Step 1: StartPendingUpload --------------------------------------
         logger.info(
-            "[register_model] step 1/3 pending_upload(name=%r, version=%r)",
+            "[models_create] step 1/3 pending_upload(name=%r, version=%r)",
             name,
             version,
         )
@@ -194,13 +249,13 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
         )
         sas_uri, container_blob_uri, pending_upload_id = self._extract_pending_upload_targets(pending)
         logger.info(
-            "[register_model] pending_upload_id=%s blob_uri=%s",
+            "[models_create] pending_upload_id=%s blob_uri=%s",
             pending_upload_id,
             container_blob_uri,
         )
 
         # --- Step 2: Upload via azcopy ---------------------------------------
-        logger.info("[register_model] step 2/3 azcopy upload from %s", source_path)
+        logger.info("[models_create] step 2/3 azcopy upload from %s", source_path)
         self._run_azcopy(source_path, sas_uri, azcopy_path=azcopy_path)
 
         # --- Step 3: Commit registration -------------------------------------
@@ -212,7 +267,7 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
             tags=tags or {},
         )
         logger.info(
-            "[register_model] step 3/3 create_async(name=%r, version=%r)",
+            "[models_create] step 3/3 create_async(name=%r, version=%r)",
             name,
             version,
         )

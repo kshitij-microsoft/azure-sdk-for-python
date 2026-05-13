@@ -5,12 +5,13 @@
 # ------------------------------------
 """Live, recorded async tests for ``project_client.beta.models``.
 
-Mirrors :mod:`tests.models.test_models` for the async client. ``register_model``
+Mirrors :mod:`tests.models.test_models` for the async client. ``models_create``
 itself is implemented only on the sync client (it shells out to ``azcopy``); the
 async surface is exercised via ``list``, ``list_versions``, ``get`` and
 ``delete`` against a model registered with the sync helper as part of the
 fixture.
 """
+
 import os
 
 import pytest
@@ -53,7 +54,7 @@ class TestModelsAsync(TestBase):
             endpoint=endpoint,
             credential=self.get_credential(SyncAIProjectClient, is_async=False),
         ) as sync_client:
-            registered = sync_client.beta.models.register_model(
+            registered = sync_client.beta.models.models_create(
                 name=model_name,
                 version=model_version,
                 source=data_folder,
