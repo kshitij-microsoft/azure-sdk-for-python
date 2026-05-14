@@ -29,8 +29,6 @@ class _AgentDefinitionOptInKeys(str, Enum, metaclass=CaseInsensitiveEnumMeta):
 class _FoundryFeaturesOptInKeys(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Type of _FoundryFeaturesOptInKeys."""
 
-    SKILLS_V1_PREVIEW = "Skills=V1Preview"
-    """SKILLS_V1_PREVIEW."""
     EVALUATIONS_V1_PREVIEW = "Evaluations=V1Preview"
     """EVALUATIONS_V1_PREVIEW."""
     SCHEDULES_V1_PREVIEW = "Schedules=V1Preview"
@@ -43,8 +41,12 @@ class _FoundryFeaturesOptInKeys(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """MEMORY_STORES_V1_PREVIEW."""
     TOOLBOXES_V1_PREVIEW = "Toolboxes=V1Preview"
     """TOOLBOXES_V1_PREVIEW."""
+    SKILLS_V1_PREVIEW = "Skills=V1Preview"
+    """SKILLS_V1_PREVIEW."""
     DATA_GENERATION_JOBS_V1_PREVIEW = "DataGenerationJobs=V1Preview"
     """DATA_GENERATION_JOBS_V1_PREVIEW."""
+    MODELS_V1_PREVIEW = "Models=V1Preview"
+    """MODELS_V1_PREVIEW."""
 
 
 class AgentBlueprintReferenceType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
@@ -74,6 +76,8 @@ class AgentEndpointProtocol(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """RESPONSES."""
     A2A = "a2a"
     """A2A."""
+    MCP = "mcp"
+    """MCP."""
     INVOCATIONS = "invocations"
     """INVOCATIONS."""
 
@@ -111,6 +115,8 @@ class AgentProtocol(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """ACTIVITY_PROTOCOL."""
     RESPONSES = "responses"
     """RESPONSES."""
+    MCP = "mcp"
+    """MCP."""
     INVOCATIONS = "invocations"
     """INVOCATIONS."""
 
@@ -344,52 +350,6 @@ class CustomToolParamFormatType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """GRAMMAR."""
 
 
-class DataGenerationJobOutputType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """The supported output file types for a data generation job."""
-
-    FILE = "file"
-    """The generated data is an Azure OpenAI File."""
-    DATASET = "dataset"
-    """The generated data is a Dataset."""
-
-
-class DataGenerationJobScenario(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """The supported scenarios for a data generation job."""
-
-    SUPERVISED_FINETUNING = "supervised_finetuning"
-    """Supervised Fine-tuning scenario."""
-    REINFORCEMENT_FINETUNING = "reinforcement_finetuning"
-    """Reinforcement Fine-tuning scenario."""
-    EVALUATION = "evaluation"
-    """Evaluation scenario."""
-
-
-class DataGenerationJobSourceType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """The supported source types for data generation jobs."""
-
-    PROMPT = "prompt"
-    """Prompt source — inline text provided by the user."""
-    AGENT = "agent"
-    """Agent source — references an agent."""
-    TRACES = "traces"
-    """Traces source — conversation traces from Application Insights."""
-    DATASET = "dataset"
-    """Dataset source — reference to a dataset."""
-    FILE = "file"
-    """File source — Azure OpenAI file."""
-
-
-class DataGenerationJobType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """The supported data generation job types."""
-
-    SIMPLE_QNA = "simple_qna"
-    """Simple question and answers between user and agent."""
-    TRACES = "traces"
-    """Single turn query and response from agent traces."""
-    TOOL_USE = "tool_use"
-    """Tool calling conversation between user and agent."""
-
-
 class DatasetType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Enum to determine the type of data."""
 
@@ -425,6 +385,28 @@ class DeploymentType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Model deployment."""
 
 
+class EvalItemContentItemObjectType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """Type of EvalItemContentItemObjectType."""
+
+    INPUT_TEXT = "input_text"
+    """INPUT_TEXT."""
+    OUTPUT_TEXT = "output_text"
+    """OUTPUT_TEXT."""
+    INPUT_IMAGE = "input_image"
+    """INPUT_IMAGE."""
+    INPUT_AUDIO = "input_audio"
+    """INPUT_AUDIO."""
+
+
+class EvaluationLevel(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """The level at which evaluation is performed."""
+
+    TURN = "turn"
+    """Evaluation is performed at the turn level."""
+    CONVERSATION = "conversation"
+    """Evaluation is performed at the conversation level."""
+
+
 class EvaluationRuleActionType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Type of the evaluation action."""
 
@@ -441,6 +423,15 @@ class EvaluationRuleEventType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Response completed."""
     MANUAL = "manual"
     """Manual trigger."""
+
+
+class EvaluationSuiteSubtype(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """The subtype of an evaluation suite."""
+
+    DEFAULT = "default"
+    """Default suite type."""
+    BENCHMARK = "benchmark"
+    """Benchmark suite."""
 
 
 class EvaluationTaxonomyInputType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
@@ -476,22 +467,6 @@ class EvaluatorDefinitionType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Service-based evaluator."""
     OPENAI_GRADERS = "openai_graders"
     """OpenAI graders."""
-    RUBRICS = "rubrics"
-    """Rubric-based evaluator definition. Stores rubric criteria for both quality and safety
-    evaluators. Can be created via the generate API or manually via createVersion."""
-
-
-class EvaluatorGenerationJobSourceType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """The supported source types for evaluator generation jobs."""
-
-    PROMPT = "prompt"
-    """Prompt source — inline text provided by the user."""
-    AGENT = "agent"
-    """Agent source — references an agent to fetch instructions and metadata from."""
-    TRACES = "traces"
-    """Traces source — conversation traces from Application Insights."""
-    DATASET = "dataset"
-    """Dataset source — reference to a dataset."""
 
 
 class EvaluatorMetricDirection(str, Enum, metaclass=CaseInsensitiveEnumMeta):
@@ -761,6 +736,9 @@ class PendingUploadType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
 
     NONE = "None"
     """No pending upload."""
+    BLOB_REFERENCE = "BlobReference"
+    """Deprecated: the service never read this value and silently ignored it. Use
+    TemporaryBlobReference instead."""
     TEMPORARY_BLOB_REFERENCE = "TemporaryBlobReference"
     """Temporary blob reference."""
 
@@ -861,15 +839,6 @@ class SessionLogEventType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
 
     LOG = "log"
     """A log line from the agent session container."""
-
-
-class SimpleQnAFineTuningQuestionType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """The supported question types for SimpleQnA data generation jobs used for fine-tuning scenarios."""
-
-    SHORT_ANSWER = "short_answer"
-    """Short answer question type."""
-    LONG_ANSWER = "long_answer"
-    """Long answer question type."""
 
 
 class TelemetryDataKind(str, Enum, metaclass=CaseInsensitiveEnumMeta):

@@ -55,8 +55,8 @@ from azure.storage.blob import ContainerClient
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.models import (
     FoundryModelWeightType,
+    ModelPendingUploadRequest,
     ModelVersion,
-    PendingUploadRequest,
     PendingUploadType,
 )
 
@@ -83,7 +83,7 @@ with (
     pending = project_client.beta.models.pending_upload(
         name=model_name,
         version=model_version,
-        body=PendingUploadRequest(
+        body=ModelPendingUploadRequest(
             pending_upload_type=PendingUploadType.TEMPORARY_BLOB_REFERENCE,
         ),
     )

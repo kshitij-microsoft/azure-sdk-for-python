@@ -57,8 +57,8 @@ from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import (
     FoundryModelWeightType,
     ModelCredentialRequest,
+    ModelPendingUploadRequest,
     ModelVersion,
-    PendingUploadRequest,
     PendingUploadType,
     UpdateModelVersionRequest,
 )
@@ -89,7 +89,7 @@ async def main() -> None:
         pending = await project_client.beta.models.pending_upload(
             name=model_name,
             version=model_version,
-            body=PendingUploadRequest(
+            body=ModelPendingUploadRequest(
                 pending_upload_type=PendingUploadType.TEMPORARY_BLOB_REFERENCE,
             ),
         )

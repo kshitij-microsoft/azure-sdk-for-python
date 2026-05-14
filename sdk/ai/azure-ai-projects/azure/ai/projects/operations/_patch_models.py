@@ -21,9 +21,9 @@ from azure.core.tracing.decorator import distributed_trace
 
 from ._operations import BetaModelsOperations as BetaModelsOperationsGenerated
 from ..models._models import (
+    ModelPendingUploadRequest,
+    ModelPendingUploadResponse,
     ModelVersion,
-    PendingUploadRequest,
-    PendingUploadResult,
     PendingUploadType,
 )
 
@@ -42,13 +42,13 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
 
     @staticmethod
     def _extract_pending_upload_targets(
-        response: Union[PendingUploadResult, dict],
+        response: Union[ModelPendingUploadResponse, dict],
     ) -> "tuple[str, str, Optional[str]]":
         """Return ``(sas_uri, container_blob_uri, pending_upload_id)`` from a pending-upload response.
 
         The service currently returns the raw datastore-style payload
         (``blobReferenceForConsumption`` / ``temporaryDataReferenceId``) for some
-        Foundry deployments rather than the SDK-modeled ``PendingUploadResult``
+        Foundry deployments rather than the SDK-modeled ``ModelPendingUploadResponse``
         shape (``blobReference`` / ``pendingUploadId``). Tolerate both wire
         shapes so callers don't have to.
         """
@@ -242,7 +242,7 @@ class BetaModelsOperations(BetaModelsOperationsGenerated):
         pending = self.pending_upload(
             name=name,
             version=version,
-            body=PendingUploadRequest(
+            body=ModelPendingUploadRequest(
                 pending_upload_type=PendingUploadType.TEMPORARY_BLOB_REFERENCE,
             ),
             **kwargs,

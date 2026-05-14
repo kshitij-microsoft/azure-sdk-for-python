@@ -117,7 +117,7 @@ class TestModels(TestBase):
     @recorded_by_proxy
     def test_models_pending_upload(self, **kwargs):
         """Lower-level: ``pending_upload`` returns a usable SAS URI."""
-        from azure.ai.projects.models import PendingUploadRequest, PendingUploadType
+        from azure.ai.projects.models import ModelPendingUploadRequest, PendingUploadType
 
         model_name = self.test_models_params["model_name_2"]
         model_version = self.test_models_params["model_version"]
@@ -129,7 +129,7 @@ class TestModels(TestBase):
             pending = project_client.beta.models.pending_upload(
                 name=model_name,
                 version=model_version,
-                body=PendingUploadRequest(
+                body=ModelPendingUploadRequest(
                     pending_upload_type=PendingUploadType.TEMPORARY_BLOB_REFERENCE,
                 ),
             )
