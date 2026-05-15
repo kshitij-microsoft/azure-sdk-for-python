@@ -110,12 +110,15 @@ class InstallAndTest(Check):
     def run_pytest(
         self, executable: str, staging_directory: str, package_dir: str, package_name: str, pytest_args: List[str]
     ) -> int:
-        pytest_command = ["pytest", *pytest_args]
+        # Probe: invoke pytest via 'python -X faulthandler -X dev -m pytest' so any
+        # SIGABRT/SIGSEGV in the child dumps a Python+C traceback before the process
+        # dies. Also enables developer-mode warnings. Safe no-op when no fatal signal.
+        pytest_command = ["-X", "faulthandler", "-X", "dev", "-m", "pytest", *pytest_args]
 
         environment = os.environ.copy()
-        environment.update({"PYTHONPYCACHEPREFIX": staging_directory})
+        environment.update({"PYTHONPYCACHEPREFIX": staging_directory, "PYTHONFAULTHANDLER": "1"})
 
-        logger.info(f"Running pytest for {package_name} with command: {pytest_command}")
+        logger.info(f"Running pytest for {package_name} with command: {[executable, *pytest_command]}")
         logger.debug(f"with environment vars: {environment}")
 
         pytest_result = self.run_venv_command(
@@ -124,7 +127,7 @@ class InstallAndTest(Check):
             cwd=package_dir,
             immediately_dump=True,
             additional_environment_settings=environment,
-            append_executable=False,
+            append_executable=True,
         )
         if pytest_result.returncode != 0:
             if pytest_result.returncode == 5 and is_error_code_5_allowed(package_dir, package_name):
