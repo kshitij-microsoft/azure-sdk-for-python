@@ -110,18 +110,27 @@ class InstallAndTest(Check):
     def run_pytest(
         self, executable: str, staging_directory: str, package_dir: str, package_name: str, pytest_args: List[str]
     ) -> int:
-        # Probe: invoke pytest via 'python -X faulthandler -X dev -X importtime -u -m pytest'
-        # so any SIGABRT/SIGSEGV in the child dumps a Python+C traceback before the process
-        # dies, and the last printed import on stderr identifies the module that crashes.
-        # PYTHONUNBUFFERED=1 ensures every line is flushed immediately.
-        pytest_command = [
-            "-X", "faulthandler",
-            "-X", "dev",
-            "-X", "importtime",
-            "-u",
-            "-m", "pytest",
-            *pytest_args,
-        ]
+        # Probe: wrap pytest in /bin/bash so we can tee its stderr to a file and
+        # cat it back AFTER the (possibly crashing) python process exits. This
+        # guarantees we see -X importtime/faulthandler output even when SIGABRT
+        # would otherwise prevent the parent pipe from receiving it cleanly.
+        log_file = os.path.join(staging_directory, "pytest_repro.log")
+        inner_args = [executable, "-X", "faulthandler", "-X", "dev", "-X", "importtime", "-u", "-m", "pytest", *pytest_args]
+        # Quote each arg with single quotes (escape any embedded single-quotes)
+        def _q(s: str) -> str:
+            return "'" + s.replace("'", "'\\''") + "'"
+        inner_cmd = " ".join(_q(a) for a in inner_args)
+        bash_script = (
+            f"echo '=== probe: launching pytest ==='; "
+            f"set +e; "
+            f"({inner_cmd}) >{_q(log_file)} 2>&1; rc=$?; "
+            f"echo '=== probe: pytest exited with rc='$rc' ==='; "
+            f"echo '=== probe: BEGIN pytest_repro.log (last 400 lines) ==='; "
+            f"tail -n 400 {_q(log_file)}; "
+            f"echo '=== probe: END pytest_repro.log ==='; "
+            f"exit $rc"
+        )
+        pytest_command = ["/bin/bash", "-c", bash_script]
 
         environment = os.environ.copy()
         environment.update(
@@ -132,8 +141,7 @@ class InstallAndTest(Check):
             }
         )
 
-        logger.info(f"Running pytest for {package_name} with command: {[executable, *pytest_command]}")
-        logger.debug(f"with environment vars: {environment}")
+        logger.info(f"Running pytest for {package_name} (wrapped) with inner command: {inner_args}")
 
         pytest_result = self.run_venv_command(
             executable,
@@ -141,7 +149,7 @@ class InstallAndTest(Check):
             cwd=package_dir,
             immediately_dump=True,
             additional_environment_settings=environment,
-            append_executable=True,
+            append_executable=False,
         )
         if pytest_result.returncode != 0:
             if pytest_result.returncode == 5 and is_error_code_5_allowed(package_dir, package_name):
