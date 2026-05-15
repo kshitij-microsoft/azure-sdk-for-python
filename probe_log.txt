@@ -1,0 +1,652 @@
+2026-05-15T07:39:21.3321754Z ##[debug]Evaluating condition for step: 'Run Tests'
+2026-05-15T07:39:21.3322929Z ##[debug]Evaluating: SucceededNode()
+2026-05-15T07:39:21.3323443Z ##[debug]Evaluating SucceededNode:
+2026-05-15T07:39:21.3324274Z ##[debug]Result: True
+2026-05-15T07:39:21.3325777Z ##[section]Starting: Run Tests
+2026-05-15T07:39:21.3332840Z ==============================================================================
+2026-05-15T07:39:21.3333090Z Task         : PowerShell
+2026-05-15T07:39:21.3333212Z Description  : Run a PowerShell script on Linux, macOS, or Windows
+2026-05-15T07:39:21.3333345Z Version      : 2.268.1
+2026-05-15T07:39:21.3333446Z Author       : Microsoft Corporation
+2026-05-15T07:39:21.3333552Z Help         : https://docs.microsoft.com/azure/devops/pipelines/tasks/utility/powershell
+2026-05-15T07:39:21.3333689Z ==============================================================================
+2026-05-15T07:39:21.3832366Z ##[debug]Using node path: /usr/local/vss-agent/4.273.0/externals/node24/bin/node
+2026-05-15T07:39:21.4308121Z ##[debug]system.debug=true
+2026-05-15T07:39:21.4309328Z ##[debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=True
+2026-05-15T07:39:21.4353135Z ##[debug]agent.TempDirectory=/mnt/vss/_work/_temp
+2026-05-15T07:39:21.4357619Z ##[debug]loading inputs and endpoints
+2026-05-15T07:39:21.4372291Z ##[debug]loading INPUT_TARGETTYPE
+2026-05-15T07:39:21.4382400Z ##[debug]loading INPUT_FILEPATH
+2026-05-15T07:39:21.4383179Z ##[debug]loading INPUT_SCRIPT
+2026-05-15T07:39:21.4383815Z ##[debug]loading INPUT_ERRORACTIONPREFERENCE
+2026-05-15T07:39:21.4384225Z ##[debug]loading INPUT_WARNINGPREFERENCE
+2026-05-15T07:39:21.4402103Z ##[debug]loading INPUT_INFORMATIONPREFERENCE
+2026-05-15T07:39:21.4402802Z ##[debug]loading INPUT_VERBOSEPREFERENCE
+2026-05-15T07:39:21.4403364Z ##[debug]loading INPUT_DEBUGPREFERENCE
+2026-05-15T07:39:21.4403841Z ##[debug]loading INPUT_PROGRESSPREFERENCE
+2026-05-15T07:39:21.4404304Z ##[debug]loading INPUT_FAILONSTDERR
+2026-05-15T07:39:21.4404767Z ##[debug]loading INPUT_SHOWWARNINGS
+2026-05-15T07:39:21.4405233Z ##[debug]loading INPUT_IGNORELASTEXITCODE
+2026-05-15T07:39:21.4405693Z ##[debug]loading INPUT_PWSH
+2026-05-15T07:39:21.4406151Z ##[debug]loading INPUT_WORKINGDIRECTORY
+2026-05-15T07:39:21.4406616Z ##[debug]loading INPUT_RUNSCRIPTINSEPARATESCOPE
+2026-05-15T07:39:21.4407085Z ##[debug]loading ENDPOINT_AUTH_SYSTEMVSSCONNECTION
+2026-05-15T07:39:21.4407569Z ##[debug]loading ENDPOINT_AUTH_SCHEME_SYSTEMVSSCONNECTION
+2026-05-15T07:39:21.4408062Z ##[debug]loading ENDPOINT_AUTH_PARAMETER_SYSTEMVSSCONNECTION_ACCESSTOKEN
+2026-05-15T07:39:21.4408678Z ##[debug]loaded 18
+2026-05-15T07:39:21.4409166Z ##[debug]Agent.ProxyUrl=undefined
+2026-05-15T07:39:21.4409711Z ##[debug]Agent.CAInfo=undefined
+2026-05-15T07:39:21.4410251Z ##[debug]Agent.ClientCert=undefined
+2026-05-15T07:39:21.4410794Z ##[debug]Agent.SkipCertValidation=undefined
+2026-05-15T07:39:21.4428098Z ##[debug]check path : /mnt/vss/_work/_tasks/PowerShell_e213ff0f-5d5c-4791-802d-52ea3e7be1f1/2.268.1/task.json
+2026-05-15T07:39:21.4429004Z ##[debug]adding resource file: /mnt/vss/_work/_tasks/PowerShell_e213ff0f-5d5c-4791-802d-52ea3e7be1f1/2.268.1/task.json
+2026-05-15T07:39:21.4429841Z ##[debug]system.culture=en-US
+2026-05-15T07:39:21.4438255Z ##[debug]errorActionPreference=stop
+2026-05-15T07:39:21.4439392Z ##[debug]warningPreference=default
+2026-05-15T07:39:21.4442206Z ##[debug]informationPreference=default
+2026-05-15T07:39:21.4442948Z ##[debug]verbosePreference=default
+2026-05-15T07:39:21.4443780Z ##[debug]debugPreference=default
+2026-05-15T07:39:21.4444563Z ##[debug]progressPreference=silentlyContinue
+2026-05-15T07:39:21.4452335Z ##[debug]showWarnings=false
+2026-05-15T07:39:21.4453040Z ##[debug]failOnStderr=false
+2026-05-15T07:39:21.4453664Z ##[debug]ignoreLASTEXITCODE=false
+2026-05-15T07:39:21.4454309Z ##[debug]workingDirectory=/mnt/vss/_work/1/s
+2026-05-15T07:39:21.4454956Z ##[debug]check path : /mnt/vss/_work/1/s
+2026-05-15T07:39:21.4455589Z ##[debug]targetType=inline
+2026-05-15T07:39:21.4456586Z ##[debug]script=$env:AZPYSDK_PIP_IMPL="uv"
+Write-Host (Get-Command python).Source
+
+if ($env:TESTMARKARGUMENT) {
+  $markArg = $env:TESTMARKARGUMENT
+}
+else {
+  $markArg = ""
+}
+
+python eng/scripts/dispatch_checks.py "azure-ai-ml" `
+  --wheel_dir="/mnt/vss/_work/1/a" `
+  --disablecov `
+  --mark_arg="$markArg" `
+  --service="auto" `
+  --checks="whl,sdist,mindependency" `
+  --injected-packages="";
+exit $LASTEXITCODE;
+2026-05-15T07:39:21.4458576Z ##[debug]runScriptInSeparateScope=false
+2026-05-15T07:39:21.4459152Z Generating script.
+2026-05-15T07:39:21.4473221Z ##[debug]Processed: ##vso[task.logdetail id=bbcc1452-612a-4118-8b95-62276a998a1c;type=command;name=command;]Formatted command: $env:AZPYSDK_PIP_IMPL="uv"
+Write-Host (Get-Command python).Source
+
+if ($env:TESTMARKARGUMENT) {
+  $markArg = $env:TESTMARKARGUMENT
+}
+else {
+  $markArg = ""
+}
+
+python eng/scripts/dispatch_checks.py "azure-ai-ml" `
+  --wheel_dir="/mnt/vss/_work/1/a" `
+  --disablecov `
+  --mark_arg="$markArg" `
+  --service="auto" `
+  --checks="whl,sdist,mindependency" `
+  --injected-packages="";
+exit $LASTEXITCODE;
+2026-05-15T07:39:21.4474371Z ##[debug]Agent.Version=4.273.0
+2026-05-15T07:39:21.4474954Z ##[debug]Detected Agent.Version=4.273.0
+2026-05-15T07:39:21.4475499Z ##[debug]agent.tempDirectory=/mnt/vss/_work/_temp
+2026-05-15T07:39:21.4476048Z ##[debug]check path : /mnt/vss/_work/_temp
+2026-05-15T07:39:21.4476499Z ========================== Starting Command Output ===========================
+2026-05-15T07:39:21.4477210Z ##[debug]which 'pwsh'
+2026-05-15T07:39:21.4477727Z ##[debug]found: '/usr/bin/pwsh'
+2026-05-15T07:39:21.4478236Z ##[debug]which '/usr/bin/pwsh'
+2026-05-15T07:39:21.4478740Z ##[debug]found: '/usr/bin/pwsh'
+2026-05-15T07:39:21.4479316Z ##[debug]/usr/bin/pwsh arg: -NoLogo
+2026-05-15T07:39:21.4479961Z ##[debug]/usr/bin/pwsh arg: -NoProfile
+2026-05-15T07:39:21.4480717Z ##[debug]/usr/bin/pwsh arg: -NonInteractive
+2026-05-15T07:39:21.4481636Z ##[debug]/usr/bin/pwsh arg: -Command
+2026-05-15T07:39:21.4482320Z ##[debug]/usr/bin/pwsh arg: . '/mnt/vss/_work/_temp/1df193c5-da30-4bf0-aff3-8a033a31d351.ps1'
+2026-05-15T07:39:21.4482970Z ##[debug]exec tool: /usr/bin/pwsh
+2026-05-15T07:39:21.4483574Z ##[debug]arguments:
+2026-05-15T07:39:21.4484171Z ##[debug]   -NoLogo
+2026-05-15T07:39:21.4484758Z ##[debug]   -NoProfile
+2026-05-15T07:39:21.4485332Z ##[debug]   -NonInteractive
+2026-05-15T07:39:21.4485922Z ##[debug]   -Command
+2026-05-15T07:39:21.4486544Z ##[debug]   . '/mnt/vss/_work/_temp/1df193c5-da30-4bf0-aff3-8a033a31d351.ps1'
+2026-05-15T07:39:21.4487100Z [command]/usr/bin/pwsh -NoLogo -NoProfile -NonInteractive -Command . '/mnt/vss/_work/_temp/1df193c5-da30-4bf0-aff3-8a033a31d351.ps1'
+2026-05-15T07:39:21.6779401Z /mnt/vss/_work/1/s/venv/bin/python
+2026-05-15T07:39:22.3780581Z ##[debug]Agent environment resources - Disk: / Available 9704.49 MB out of 73325.30 MB, Memory: Used 3373.00 MB out of 15993.00 MB, CPU: Usage 29.08%
+2026-05-15T07:39:23.8957218Z 2026-05-15 07:39:23,895 [INFO] azure-sdk-tools: Beginning discovery for auto and root dir /mnt/vss/_work/1/s. Resolving to /mnt/vss/_work/1/s.
+2026-05-15T07:39:23.9193624Z 2026-05-15 07:39:23,919 [INFO] azure-sdk-tools: Executing checks with the executable /mnt/vss/_work/1/s/venv/bin/python.
+2026-05-15T07:39:23.9194383Z 2026-05-15 07:39:23,919 [INFO] azure-sdk-tools: Packages targeted: ['/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml']
+2026-05-15T07:39:23.9340299Z 2026-05-15 07:39:23,933 [INFO] root: Checking for prebuilt wheel for package azure-sdk-tools
+2026-05-15T07:39:23.9351937Z 2026-05-15 07:39:23,934 [INFO] root: No whl is found in directory /mnt/vss/_work/1/a with package name format azure_sdk_tools-0.0.0*.whl
+2026-05-15T07:39:23.9356876Z 2026-05-15 07:39:23,935 [INFO] root: List of whls in directory: []
+2026-05-15T07:39:23.9357454Z 2026-05-15 07:39:23,935 [INFO] root: Building wheel for package azure-sdk-tools
+2026-05-15T07:39:27.3846337Z ##[debug]Agent environment resources - Disk: / Available 9718.23 MB out of 73325.30 MB, Memory: Used 3268.00 MB out of 15993.00 MB, CPU: Usage 29.08%
+2026-05-15T07:39:30.0227538Z 2026-05-15 07:39:30,022 [INFO] root: Found whl azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:39:30.0228783Z 2026-05-15 07:39:30,022 [INFO] root: Wheel for package azure-sdk-tools is /mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:39:30.0229825Z 2026-05-15 07:39:30,022 [INFO] root: Replacing dev requirement. Old requirement: eng/tools/azure-sdk-tools, New requirement: /mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:39:30.1095218Z 2026-05-15 07:39:30,108 [INFO] urllib3.poolmanager: Redirecting https://github.com/Azure/azure-sdk-tools/releases/download/Azure.Sdk.Tools.TestProxy_1.0.0-dev.20260128.1/test-proxy-standalone-linux-x64.tar.gz -> https://release-assets.githubusercontent.com/github-production-release-asset/170592186/ba2bced0-72a2-42fe-81db-73696d6b50fb?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-05-15T08%3A37%3A14Z&rscd=attachment%3B+filename%3Dtest-proxy-standalone-linux-x64.tar.gz&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-05-15T07%3A36%3A43Z&ske=2026-05-15T08%3A37%3A14Z&sks=b&skv=2018-11-09&sig=qeHunOi0l7pTgo8d9qBYDgcLqMX3GYwjK9L3KENGvD0%3D&jwt=***
+2026-05-15T07:39:31.3612770Z 2026-05-15 07:39:31,360 [INFO] azure-sdk-tools: Running 3 check(s) across 1 packages (max_parallel=4).
+2026-05-15T07:39:31.3615532Z 2026-05-15 07:39:31,361 [INFO] azure-sdk-tools: Ensuring 3 test proxies are running for requested checks...
+2026-05-15T07:39:31.3625575Z 2026-05-15 07:39:31,362 [INFO] azure-sdk-tools: Replacing relative requirements in eng/test_tools.txt with prebuilt wheels.
+2026-05-15T07:39:31.3632178Z 2026-05-15 07:39:31,362 [INFO] root: Old test_tools.txt:['', 'pytest==8.3.5', 'pytest-asyncio==0.24.0', 'pytest-cov==5.0.0', 'pytest-custom-exit-code==0.3.0', 'pytest-xdist==3.2.1', 'coverage==7.6.1', 'bandit==1.6.2', 'stevedore==5.4.1', 'pyproject-api==1.8.0', 'build==1.2.2.post1', '', '', 'Jinja2==3.1.6', 'json-delta==2.0.2', 'python-dotenv==1.0.1', 'pyyaml==6.0.2', 'urllib3==2.2.3']
+2026-05-15T07:39:31.3633638Z 2026-05-15 07:39:31,363 [INFO] root: New test_tools.txt:['', 'pytest==8.3.5', 'pytest-asyncio==0.24.0', 'pytest-cov==5.0.0', 'pytest-custom-exit-code==0.3.0', 'pytest-xdist==3.2.1', 'coverage==7.6.1', 'bandit==1.6.2', 'stevedore==5.4.1', 'pyproject-api==1.8.0', 'build==1.2.2.post1', '', '', 'Jinja2==3.1.6', 'json-delta==2.0.2', 'python-dotenv==1.0.1', 'pyyaml==6.0.2', 'urllib3==2.2.3']
+2026-05-15T07:39:31.3635889Z 2026-05-15 07:39:31,363 [INFO] azure-sdk-tools: Replacing relative requirements in eng/dependency_tools.txt with prebuilt wheels.
+2026-05-15T07:39:31.3638989Z 2026-05-15 07:39:31,363 [INFO] root: Old dependency_tools.txt:['../../../eng/tools/azure-sdk-tools', "aiohttp>=3.0; python_version >= '3.5'"]
+2026-05-15T07:39:31.3640363Z 2026-05-15 07:39:31,363 [INFO] root: New dependency_tools.txt:['../../../eng/tools/azure-sdk-tools', "aiohttp>=3.0; python_version >= '3.5'"]
+2026-05-15T07:39:31.3643434Z 2026-05-15 07:39:31,364 [INFO] azure-sdk-tools: Replacing dev requirements w/ path /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml/dev_requirements.txt
+2026-05-15T07:39:31.3780774Z 2026-05-15 07:39:31,377 [INFO] root: Checking for prebuilt wheel for package azure-sdk-tools
+2026-05-15T07:39:31.3907922Z 2026-05-15 07:39:31,390 [INFO] root: Found whl azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:39:31.3908607Z 2026-05-15 07:39:31,390 [INFO] root: Wheel for package azure-sdk-tools is /mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:39:31.3909656Z 2026-05-15 07:39:31,390 [INFO] root: Replacing dev requirement. Old requirement: ../../../eng/tools/azure-sdk-tools, New requirement: /mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:39:31.3983370Z 2026-05-15 07:39:31,398 [INFO] root: Checking for prebuilt wheel for package azure-core
+2026-05-15T07:39:31.4135055Z 2026-05-15 07:39:31,413 [INFO] root: Found whl azure-core/azure_core-1.41.0-py3-none-any.whl
+2026-05-15T07:39:31.4135772Z 2026-05-15 07:39:31,413 [INFO] root: Wheel for package azure-core is /mnt/vss/_work/1/a/azure-core/azure_core-1.41.0-py3-none-any.whl
+2026-05-15T07:39:31.4136788Z 2026-05-15 07:39:31,413 [INFO] root: Replacing dev requirement. Old requirement: ../../core/azure-core, New requirement: /mnt/vss/_work/1/a/azure-core/azure_core-1.41.0-py3-none-any.whl
+2026-05-15T07:39:31.4194467Z 2026-05-15 07:39:31,419 [INFO] root: Checking for prebuilt wheel for package azure-identity
+2026-05-15T07:39:31.4204162Z 2026-05-15 07:39:31,420 [INFO] root: No whl is found in directory /mnt/vss/_work/1/a with package name format azure_identity-1.26.0b3*.whl
+2026-05-15T07:39:31.4206988Z 2026-05-15 07:39:31,420 [INFO] root: List of whls in directory: ['/mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl']
+2026-05-15T07:39:31.4208589Z 2026-05-15 07:39:31,420 [INFO] root: Building wheel for package azure-identity
+2026-05-15T07:39:32.3851615Z ##[debug]Agent environment resources - Disk: / Available 9717.76 MB out of 73325.30 MB, Memory: Used 3329.00 MB out of 15993.00 MB, CPU: Usage 18.18%
+2026-05-15T07:39:35.8423323Z 2026-05-15 07:39:35,841 [INFO] root: Found whl azure_identity-1.26.0b3-py3-none-any.whl
+2026-05-15T07:39:35.8424238Z 2026-05-15 07:39:35,842 [INFO] root: Wheel for package azure-identity is /mnt/vss/_work/1/a/azure_identity-1.26.0b3-py3-none-any.whl
+2026-05-15T07:39:35.8425052Z 2026-05-15 07:39:35,842 [INFO] root: Replacing dev requirement. Old requirement: ../../identity/azure-identity, New requirement: /mnt/vss/_work/1/a/azure_identity-1.26.0b3-py3-none-any.whl
+2026-05-15T07:39:35.8432506Z 2026-05-15 07:39:35,842 [INFO] root: Old dev_requirements.txt:['-e ../../../eng/tools/azure-sdk-tools', '../../core/azure-core', '../../identity/azure-identity', 'marshmallow>=3.5,<4.0.0', 'marshmallow-jsonschema==0.10.0', 'mock', 'pytest-cov', 'pytest-forked', 'pytest-xdist', 'pytest-timeout', 'pytest-mock', 'pytest', 'pydash', 'azure-mgmt-msi', "pywin32==311 ; sys_platform == 'win32'", 'docker;platform.python_implementation!="PyPy"', 'numpy;platform.python_implementation!="PyPy"', 'scikit-image;platform.python_implementation!="PyPy" and python_version < "3.14"', 'mldesigner', 'azure-mgmt-resourcegraph<9.0.0,>=2.0.0', 'azure-mgmt-resource<23.0.0,>=3.0.0', 'pytest-reportlog', 'python-dotenv', 'azureml-dataprep-rslex>=2.22.0; platform_python_implementation == "CPython" and python_version < "3.13"', 'azureml-dataprep-rslex>=2.22.0; platform_python_implementation == "PyPy" and python_version < "3.10"', 'pip', 'setuptools==77.0.3']
+2026-05-15T07:39:35.8435203Z 2026-05-15 07:39:35,843 [INFO] root: New dev_requirements.txt:['/mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl', '/mnt/vss/_work/1/a/azure-core/azure_core-1.41.0-py3-none-any.whl', '/mnt/vss/_work/1/a/azure_identity-1.26.0b3-py3-none-any.whl', 'marshmallow>=3.5,<4.0.0', 'marshmallow-jsonschema==0.10.0', 'mock', 'pytest-cov', 'pytest-forked', 'pytest-xdist', 'pytest-timeout', 'pytest-mock', 'pytest', 'pydash', 'azure-mgmt-msi', "pywin32==311 ; sys_platform == 'win32'", 'docker;platform.python_implementation!="PyPy"', 'numpy;platform.python_implementation!="PyPy"', 'scikit-image;platform.python_implementation!="PyPy" and python_version < "3.14"', 'mldesigner', 'azure-mgmt-resourcegraph<9.0.0,>=2.0.0', 'azure-mgmt-resource<23.0.0,>=3.0.0', 'pytest-reportlog', 'python-dotenv', 'azureml-dataprep-rslex>=2.22.0; platform_python_implementation == "CPython" and python_version < "3.13"', 'azureml-dataprep-rslex>=2.22.0; platform_python_implementation == "PyPy" and python_version < "3.10"', 'pip', 'setuptools==77.0.3']
+2026-05-15T07:39:35.8484719Z 2026-05-15 07:39:35,848 [INFO] azure-sdk-tools: Assigning proxy port 5050 to check whl for package /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8545203Z 2026-05-15 07:39:35,854 [INFO] azure-sdk-tools: Assigning proxy port 5051 to check sdist for package /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8592094Z 2026-05-15 07:39:35,858 [WARNING] azure-sdk-tools: Skipping disabled check mindependency for package /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8597091Z 2026-05-15 07:39:35,859 [INFO] azure-sdk-tools: [START 1/2] whl :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8597877Z CMD: /mnt/vss/_work/1/s/venv/bin/python -m azpysdk.main whl --isolate /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8607658Z 2026-05-15 07:39:35,860 [INFO] azure-sdk-tools: /mnt/vss/_work/1/s/venv/bin/python -m azpysdk.main whl --isolate /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8691627Z 2026-05-15 07:39:35,868 [INFO] azure-sdk-tools: [START 2/2] sdist :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8692461Z CMD: /mnt/vss/_work/1/s/venv/bin/python -m azpysdk.main sdist --isolate /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:35.8703664Z 2026-05-15 07:39:35,870 [INFO] azure-sdk-tools: /mnt/vss/_work/1/s/venv/bin/python -m azpysdk.main sdist --isolate /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:39:37.3860389Z ##[debug]Agent environment resources - Disk: / Available 9717.17 MB out of 73325.30 MB, Memory: Used 3378.00 MB out of 15993.00 MB, CPU: Usage 29.52%
+2026-05-15T07:39:42.3863706Z ##[debug]Agent environment resources - Disk: / Available 9705.53 MB out of 73325.30 MB, Memory: Used 3644.00 MB out of 15993.00 MB, CPU: Usage 29.52%
+2026-05-15T07:39:47.3874137Z ##[debug]Agent environment resources - Disk: / Available 9718.02 MB out of 73325.30 MB, Memory: Used 3832.00 MB out of 15993.00 MB, CPU: Usage 25.74%
+2026-05-15T07:39:52.3879341Z ##[debug]Agent environment resources - Disk: / Available 9715.79 MB out of 73325.30 MB, Memory: Used 3798.00 MB out of 15993.00 MB, CPU: Usage 27.45%
+2026-05-15T07:39:57.3881098Z ##[debug]Agent environment resources - Disk: / Available 9715.63 MB out of 73325.30 MB, Memory: Used 3710.00 MB out of 15993.00 MB, CPU: Usage 62.05%
+2026-05-15T07:40:02.3886615Z ##[debug]Agent environment resources - Disk: / Available 9658.78 MB out of 73325.30 MB, Memory: Used 3551.00 MB out of 15993.00 MB, CPU: Usage 62.05%
+2026-05-15T07:40:07.3886632Z ##[debug]Agent environment resources - Disk: / Available 9656.04 MB out of 73325.30 MB, Memory: Used 3697.00 MB out of 15993.00 MB, CPU: Usage 53.45%
+2026-05-15T07:40:12.3883425Z ##[debug]Agent environment resources - Disk: / Available 9564.49 MB out of 73325.30 MB, Memory: Used 3563.00 MB out of 15993.00 MB, CPU: Usage 20.71%
+2026-05-15T07:40:17.3893693Z ##[debug]Agent environment resources - Disk: / Available 9432.87 MB out of 73325.30 MB, Memory: Used 3924.00 MB out of 15993.00 MB, CPU: Usage 65.04%
+2026-05-15T07:40:22.3903272Z ##[debug]Agent environment resources - Disk: / Available 9251.29 MB out of 73325.30 MB, Memory: Used 3928.00 MB out of 15993.00 MB, CPU: Usage 56.25%
+2026-05-15T07:40:27.3905648Z ##[debug]Agent environment resources - Disk: / Available 9251.27 MB out of 73325.30 MB, Memory: Used 4167.00 MB out of 15993.00 MB, CPU: Usage 56.25%
+2026-05-15T07:40:27.9860292Z 2026-05-15 07:40:27,985 [INFO] azure-sdk-tools: [END   1/2] whl :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml -> FAIL(250) in 52.13s
+2026-05-15T07:40:28.9044511Z ##[group]/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml :: whl :: 250
+2026-05-15T07:40:28.9049893Z ===== OUTPUT: whl :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml (exit 250) =====
+2026-05-15T07:40:28.9050652Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:28.9051684Z Collecting azure-mgmt-core>=1.3.0
+2026-05-15T07:40:28.9052355Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-mgmt-core/1.6/azure_mgmt_core-1.6.0-py3-none-any.whl (29 kB)
+2026-05-15T07:40:28.9053070Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_mgmt_core-1.6.0-py3-none-any.whl
+2026-05-15T07:40:28.9053581Z Successfully downloaded azure-mgmt-core
+2026-05-15T07:40:28.9054275Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:28.9054868Z Collecting azure-storage-blob>=12.10.0
+2026-05-15T07:40:28.9055531Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-storage-blob/12.29/azure_storage_blob-12.29.0-py3-none-any.whl (434 kB)
+2026-05-15T07:40:28.9056840Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 434.8/434.8 kB 20.6 MB/s eta 0:00:00
+2026-05-15T07:40:28.9057376Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_blob-12.29.0-py3-none-any.whl
+2026-05-15T07:40:28.9057872Z Successfully downloaded azure-storage-blob
+2026-05-15T07:40:28.9058396Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:28.9058962Z Collecting azure-storage-file-share
+2026-05-15T07:40:28.9059606Z   Using cached https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-storage-file-share/12.25/azure_storage_file_share-12.25.0-py3-none-any.whl (316 kB)
+2026-05-15T07:40:28.9060340Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_file_share-12.25.0-py3-none-any.whl
+2026-05-15T07:40:28.9060879Z Successfully downloaded azure-storage-file-share
+2026-05-15T07:40:28.9061658Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:28.9062443Z Collecting azure-storage-file-datalake>=12.2.0
+2026-05-15T07:40:28.9063076Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-storage-file-datalake/12.24/azure_storage_file_datalake-12.24.0-py3-none-any.whl (285 kB)
+2026-05-15T07:40:28.9063956Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 285.9/285.9 kB 24.0 MB/s eta 0:00:00
+2026-05-15T07:40:28.9064511Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_file_datalake-12.24.0-py3-none-any.whl
+2026-05-15T07:40:28.9065043Z Successfully downloaded azure-storage-file-datalake
+2026-05-15T07:40:28.9065618Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:28.9066176Z Collecting azure-monitor-opentelemetry
+2026-05-15T07:40:28.9066798Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-monitor-opentelemetry/1.8.8/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl (41 kB)
+2026-05-15T07:40:28.9067612Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.4/41.4 kB 6.4 MB/s eta 0:00:00
+2026-05-15T07:40:28.9068113Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl
+2026-05-15T07:40:28.9068606Z Successfully downloaded azure-monitor-opentelemetry
+2026-05-15T07:40:28.9069064Z whl check completed with exit code -6
+2026-05-15T07:40:28.9069503Z ===========================================================================
+2026-05-15T07:40:28.9070033Z ===== STDERR: whl :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml (exit 250) =====
+2026-05-15T07:40:28.9075526Z 2026-05-15 07:39:36,463 [INFO] azure-sdk-tools: Installing from feed: https://build:***
+2026-05-15T07:40:28.9076136Z 2026-05-15 07:39:36,464 [INFO] azure-sdk-tools: Running whl check...
+2026-05-15T07:40:28.9076646Z Using PyPy 3.11.15 interpreter at: /opt/hostedtoolcache/PyPy/3.11.15/x64/bin/python3
+2026-05-15T07:40:28.9077153Z Creating virtual environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl
+2026-05-15T07:40:28.9077640Z Activate with: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/bin/activate
+2026-05-15T07:40:28.9078104Z 2026-05-15 07:39:36,786 [INFO] root: Found whl azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:40:28.9078599Z Using Python 3.11.15 environment at: .venv/azure-ai-ml/.venv_whl
+2026-05-15T07:40:28.9079059Z Resolved 35 packages in 1.22s
+2026-05-15T07:40:28.9079445Z Prepared 3 packages in 11.10s
+2026-05-15T07:40:28.9079948Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:28.9080643Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:28.9081417Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:28.9081940Z Installed 35 packages in 226ms
+2026-05-15T07:40:28.9082343Z  + azure-core==1.40.0
+2026-05-15T07:40:28.9082762Z  + azure-sdk-tools==0.0.0 (from file:///mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl)
+2026-05-15T07:40:28.9083242Z  + bashlex==0.18
+2026-05-15T07:40:28.9083579Z  + bracex==2.6
+2026-05-15T07:40:28.9083969Z  + build==1.5.0
+2026-05-15T07:40:28.9084312Z  + certifi==2026.4.22
+2026-05-15T07:40:28.9084729Z  + charset-normalizer==3.4.7
+2026-05-15T07:40:28.9085189Z  + cibuildwheel==2.23.3
+2026-05-15T07:40:28.9085591Z  + configargparse==1.7.5
+2026-05-15T07:40:28.9085922Z  + coverage==7.14.0
+2026-05-15T07:40:28.9086281Z  + dependency-groups==1.3.1
+2026-05-15T07:40:28.9086609Z  + filelock==3.29.0
+2026-05-15T07:40:28.9086943Z  + idna==3.15
+2026-05-15T07:40:28.9087252Z  + iniconfig==2.3.0
+2026-05-15T07:40:28.9087614Z  + jinja2==3.1.6
+2026-05-15T07:40:28.9088005Z  + json-delta==2.0.2
+2026-05-15T07:40:28.9088337Z  + markupsafe==3.0.3
+2026-05-15T07:40:28.9088681Z  + packaging==26.2
+2026-05-15T07:40:28.9089228Z  + pkginfo==1.12.1.2
+2026-05-15T07:40:28.9089627Z  + platformdirs==4.9.6
+2026-05-15T07:40:28.9089968Z  + pluggy==1.6.0
+2026-05-15T07:40:28.9090288Z  + pygments==2.20.0
+2026-05-15T07:40:28.9090611Z  + pyparsing==3.1.4
+2026-05-15T07:40:28.9090931Z  + pyproject-hooks==1.2.0
+2026-05-15T07:40:28.9091461Z  + pytest==9.0.3
+2026-05-15T07:40:28.9091806Z  + pytest-asyncio==1.3.0
+2026-05-15T07:40:28.9092132Z  + pytest-cov==7.1.0
+2026-05-15T07:40:28.9092560Z  + python-dotenv==1.2.2
+2026-05-15T07:40:28.9092941Z  + pyyaml==6.0.3
+2026-05-15T07:40:28.9093277Z  + requests==2.34.2
+2026-05-15T07:40:28.9093680Z  + setuptools==82.0.1
+2026-05-15T07:40:28.9094069Z  + tomli-w==1.0.0
+2026-05-15T07:40:28.9094492Z  + typing-extensions==4.15.0
+2026-05-15T07:40:28.9094869Z  + urllib3==2.7.0
+2026-05-15T07:40:28.9095245Z  + wheel==0.47.0
+2026-05-15T07:40:28.9095685Z 2026-05-15 07:39:49,470 [INFO] azure-sdk-tools: Processing azure-ai-ml using interpreter /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/bin/python
+2026-05-15T07:40:28.9096243Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl
+2026-05-15T07:40:28.9096714Z Resolved 7 packages in 426ms
+2026-05-15T07:40:28.9097062Z Prepared 1 package in 82ms
+2026-05-15T07:40:28.9097487Z Uninstalled 4 packages in 4ms
+2026-05-15T07:40:28.9097942Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:28.9098486Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:28.9099038Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:28.9099528Z Installed 5 packages in 12ms
+2026-05-15T07:40:28.9099874Z  - build==1.5.0
+2026-05-15T07:40:28.9100200Z  + build==1.2.2.post1
+2026-05-15T07:40:28.9100601Z  - packaging==26.2
+2026-05-15T07:40:28.9100934Z  + packaging==24.2
+2026-05-15T07:40:28.9101448Z  + tomli==2.2.1
+2026-05-15T07:40:28.9101879Z  - urllib3==2.7.0
+2026-05-15T07:40:28.9102276Z  + urllib3==2.2.3
+2026-05-15T07:40:28.9102616Z  - wheel==0.47.0
+2026-05-15T07:40:28.9103001Z  + wheel==0.45.1
+2026-05-15T07:40:28.9103386Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl
+2026-05-15T07:40:28.9103843Z Resolved 27 packages in 1.14s
+2026-05-15T07:40:28.9104191Z Prepared 7 packages in 113ms
+2026-05-15T07:40:28.9104597Z Uninstalled 6 packages in 11ms
+2026-05-15T07:40:28.9104997Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:28.9105518Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:28.9106174Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:28.9106671Z Installed 17 packages in 50ms
+2026-05-15T07:40:28.9107050Z  + bandit==1.6.2
+2026-05-15T07:40:28.9107442Z  - coverage==7.14.0
+2026-05-15T07:40:28.9107841Z  + coverage==7.6.1
+2026-05-15T07:40:28.9108183Z  + execnet==2.1.2
+2026-05-15T07:40:28.9108544Z  + gitdb==4.0.12
+2026-05-15T07:40:28.9108932Z  + gitpython==3.1.50
+2026-05-15T07:40:28.9109268Z  + pbr==7.0.3
+2026-05-15T07:40:28.9109630Z  + pyproject-api==1.8.0
+2026-05-15T07:40:28.9110030Z  - pytest==9.0.3
+2026-05-15T07:40:28.9110357Z  + pytest==8.3.5
+2026-05-15T07:40:28.9110719Z  - pytest-asyncio==1.3.0
+2026-05-15T07:40:28.9111120Z  + pytest-asyncio==0.24.0
+2026-05-15T07:40:28.9111739Z  - pytest-cov==7.1.0
+2026-05-15T07:40:28.9112079Z  + pytest-cov==5.0.0
+2026-05-15T07:40:28.9112460Z  + pytest-custom-exit-code==0.3.0
+2026-05-15T07:40:28.9112848Z  + pytest-xdist==3.2.1
+2026-05-15T07:40:28.9113237Z  - python-dotenv==1.2.2
+2026-05-15T07:40:28.9113587Z  + python-dotenv==1.0.1
+2026-05-15T07:40:28.9113977Z  - pyyaml==6.0.3
+2026-05-15T07:40:28.9114303Z  + pyyaml==6.0.2
+2026-05-15T07:40:28.9114648Z  + six==1.17.0
+2026-05-15T07:40:28.9114958Z  + smmap==5.0.3
+2026-05-15T07:40:28.9115293Z  + stevedore==5.4.1
+2026-05-15T07:40:28.9115900Z 2026-05-15 07:39:51,359 [INFO] azure-sdk-tools: Installing dev requirements for /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:40:28.9116463Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl
+2026-05-15T07:40:28.9116933Z Resolved 61 packages in 3.78s
+2026-05-15T07:40:28.9117291Z Uninstalled 2 packages in 17ms
+2026-05-15T07:40:28.9117777Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:28.9118318Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:28.9118868Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:28.9119360Z Installed 27 packages in 328ms
+2026-05-15T07:40:28.9119759Z  + azure-common==1.1.28
+2026-05-15T07:40:28.9120103Z  - azure-core==1.40.0
+2026-05-15T07:40:28.9120561Z  + azure-core==1.41.0 (from file:///mnt/vss/_work/1/a/azure-core/azure_core-1.41.0-py3-none-any.whl)
+2026-05-15T07:40:28.9121110Z  + azure-identity==1.26.0b3 (from file:///mnt/vss/_work/1/a/azure_identity-1.26.0b3-py3-none-any.whl)
+2026-05-15T07:40:28.9121803Z  + azure-mgmt-core==1.6.0
+2026-05-15T07:40:28.9122249Z  + azure-mgmt-msi==7.1.0
+2026-05-15T07:40:28.9122714Z  + azure-mgmt-resource==22.0.0
+2026-05-15T07:40:28.9123159Z  + azure-mgmt-resourcegraph==8.0.1
+2026-05-15T07:40:28.9123573Z  + cryptography==48.0.0
+2026-05-15T07:40:28.9123948Z  + isodate==0.7.2
+2026-05-15T07:40:28.9124333Z  + marshmallow==3.26.2
+2026-05-15T07:40:28.9124670Z  + marshmallow-jsonschema==0.10.0
+2026-05-15T07:40:28.9125046Z  + mldesigner==0.1.0b22
+2026-05-15T07:40:28.9125367Z  + mock==5.2.0
+2026-05-15T07:40:28.9125709Z  + msal==1.36.0
+2026-05-15T07:40:28.9126063Z  + msal-extensions==1.3.1
+2026-05-15T07:40:28.9126465Z  + msrest==0.7.1
+2026-05-15T07:40:28.9126807Z  + oauthlib==3.3.1
+2026-05-15T07:40:28.9127201Z  + pip==26.1.1
+2026-05-15T07:40:28.9127523Z  + py==1.11.0
+2026-05-15T07:40:28.9127886Z  + pydash==8.0.6
+2026-05-15T07:40:28.9128221Z  + pyjwt==2.12.1
+2026-05-15T07:40:28.9128535Z  + pytest-forked==1.4.0
+2026-05-15T07:40:28.9128855Z  + pytest-mock==3.15.1
+2026-05-15T07:40:28.9129179Z  + pytest-reportlog==1.0.0
+2026-05-15T07:40:28.9129595Z  + pytest-timeout==2.4.0
+2026-05-15T07:40:28.9129948Z  + requests-oauthlib==2.0.0
+2026-05-15T07:40:28.9130347Z  - setuptools==82.0.1
+2026-05-15T07:40:28.9130687Z  + setuptools==77.0.3
+2026-05-15T07:40:28.9131155Z 2026-05-15 07:39:55,580 [INFO] root: Found whl azure-ai-ml/azure_ai_ml-1.33.0-py3-none-any.whl
+2026-05-15T07:40:28.9131942Z 2026-05-15 07:39:55,591 [INFO] azure-sdk-tools: Installing azure-ai-ml/azure_ai_ml-1.33.0-py3-none-any.whl from directory
+2026-05-15T07:40:28.9133351Z 2026-05-15 07:40:08,096 [INFO] azure-sdk-tools: Executing command from /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging:['uv', 'pip', 'install', '/mnt/vss/_work/1/a/azure-ai-ml/azure_ai_ml-1.33.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_mgmt_core-1.6.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_file_datalake-12.24.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_file_share-12.25.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_blob-12.29.0-py3-none-any.whl', '--python', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/bin/python']
+2026-05-15T07:40:28.9134585Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl
+2026-05-15T07:40:28.9135024Z Resolved 60 packages in 2.38s
+2026-05-15T07:40:28.9135356Z    Building psutil==7.2.2
+2026-05-15T07:40:28.9135703Z       Built psutil==7.2.2
+2026-05-15T07:40:28.9136037Z Prepared 38 packages in 4.16s
+2026-05-15T07:40:28.9136458Z Uninstalled 1 package in 3ms
+2026-05-15T07:40:28.9136859Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:28.9137569Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:28.9138149Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:28.9138650Z Installed 39 packages in 590ms
+2026-05-15T07:40:28.9139039Z  + asgiref==3.11.1
+2026-05-15T07:40:28.9139384Z  + attrs==26.1.0
+2026-05-15T07:40:28.9139853Z  + azure-ai-ml==1.33.0 (from file:///mnt/vss/_work/1/a/azure-ai-ml/azure_ai_ml-1.33.0-py3-none-any.whl)
+2026-05-15T07:40:28.9140369Z  + azure-core-tracing-opentelemetry==1.0.0b13
+2026-05-15T07:40:28.9140796Z  - azure-mgmt-core==1.6.0
+2026-05-15T07:40:28.9141485Z  + azure-mgmt-core==1.6.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_mgmt_core-1.6.0-py3-none-any.whl)
+2026-05-15T07:40:28.9142239Z  + azure-monitor-opentelemetry==1.8.8 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl)
+2026-05-15T07:40:28.9142788Z  + azure-monitor-opentelemetry-exporter==1.0.0b52
+2026-05-15T07:40:28.9143282Z  + azure-storage-blob==12.29.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_blob-12.29.0-py3-none-any.whl)
+2026-05-15T07:40:28.9143930Z  + azure-storage-file-datalake==12.24.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_file_datalake-12.24.0-py3-none-any.whl)
+2026-05-15T07:40:28.9144607Z  + azure-storage-file-share==12.25.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_whl/.staging/dl/azure_storage_file_share-12.25.0-py3-none-any.whl)
+2026-05-15T07:40:28.9145155Z  + colorama==0.4.6
+2026-05-15T07:40:28.9145564Z  + importlib-metadata==8.7.1
+2026-05-15T07:40:28.9145977Z  + jsonschema==4.26.0
+2026-05-15T07:40:28.9146342Z  + jsonschema-specifications==2025.9.1
+2026-05-15T07:40:28.9146780Z  + opentelemetry-api==1.40.0
+2026-05-15T07:40:28.9147192Z  + opentelemetry-instrumentation==0.61b0
+2026-05-15T07:40:28.9147651Z  + opentelemetry-instrumentation-asgi==0.61b0
+2026-05-15T07:40:28.9148087Z  + opentelemetry-instrumentation-dbapi==0.61b0
+2026-05-15T07:40:28.9148546Z  + opentelemetry-instrumentation-django==0.61b0
+2026-05-15T07:40:28.9148971Z  + opentelemetry-instrumentation-fastapi==0.61b0
+2026-05-15T07:40:28.9149377Z  + opentelemetry-instrumentation-flask==0.61b0
+2026-05-15T07:40:28.9149797Z  + opentelemetry-instrumentation-logging==0.61b0
+2026-05-15T07:40:28.9150201Z  + opentelemetry-instrumentation-psycopg2==0.61b0
+2026-05-15T07:40:28.9150649Z  + opentelemetry-instrumentation-requests==0.61b0
+2026-05-15T07:40:28.9151411Z  + opentelemetry-instrumentation-urllib==0.61b0
+2026-05-15T07:40:28.9151941Z  + opentelemetry-instrumentation-urllib3==0.61b0
+2026-05-15T07:40:28.9152394Z  + opentelemetry-instrumentation-wsgi==0.61b0
+2026-05-15T07:40:28.9152816Z  + opentelemetry-resource-detector-azure==0.1.5
+2026-05-15T07:40:28.9153227Z  + opentelemetry-sdk==1.40.0
+2026-05-15T07:40:28.9153633Z  + opentelemetry-semantic-conventions==0.61b0
+2026-05-15T07:40:28.9154077Z  + opentelemetry-util-http==0.61b0
+2026-05-15T07:40:28.9154463Z  + psutil==7.2.2
+2026-05-15T07:40:28.9154852Z  + python-dateutil==2.9.0.post0
+2026-05-15T07:40:28.9155248Z  + referencing==0.37.0
+2026-05-15T07:40:28.9155628Z  + rpds-py==0.30.0
+2026-05-15T07:40:28.9155963Z  + strictyaml==1.7.3
+2026-05-15T07:40:28.9156351Z  + tqdm==4.67.3
+2026-05-15T07:40:28.9156678Z  + wrapt==1.17.3
+2026-05-15T07:40:28.9157062Z  + zipp==3.23.1
+2026-05-15T07:40:28.9157558Z 2026-05-15 07:40:15,288 [INFO] azure-sdk-tools: Installed azure-ai-ml/azure_ai_ml-1.33.0-py3-none-any.whl
+2026-05-15T07:40:28.9158472Z 2026-05-15 07:40:15,289 [INFO] azure-sdk-tools: Running pytest for azure-ai-ml with command: ['pytest', '-rsfE', '--junitxml=/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml/test-junit-whl.xml', '--verbose', '--cov-branch', '--durations=10', '--ignore=azure', '--ignore=.tox', '--ignore=build', '--ignore=.eggs', '--ignore=samples', '--log-cli-level=51', '--ignore-glob=**/.venv*', '--ignore-glob=**/.venv*/**', '/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml']
+2026-05-15T07:40:29.6296211Z 2026-05-15 07:40:27,973 [ERROR] azure-sdk-tools: pytest failed for azure-ai-ml with exit code -6.2026-05-15 07:40:29,629 [INFO] azure-sdk-tools: [END   2/2] sdist :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml -> FAIL(250) in 53.76s
+2026-05-15T07:40:29.6297708Z 
+2026-05-15T07:40:29.6298362Z ===========================================================================
+2026-05-15T07:40:29.6299045Z ##[endgroup]
+2026-05-15T07:40:29.6299518Z ##[group]/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml :: sdist :: 250
+2026-05-15T07:40:29.6299968Z ===== OUTPUT: sdist :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml (exit 250) =====
+2026-05-15T07:40:29.6300573Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:29.6301070Z Collecting azure-mgmt-core>=1.3.0
+2026-05-15T07:40:29.6312173Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-mgmt-core/1.6/azure_mgmt_core-1.6.0-py3-none-any.whl (29 kB)
+2026-05-15T07:40:29.6315033Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_mgmt_core-1.6.0-py3-none-any.whl
+2026-05-15T07:40:29.6315516Z Successfully downloaded azure-mgmt-core
+2026-05-15T07:40:29.6316017Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:29.6316532Z Collecting azure-storage-blob>=12.10.0
+2026-05-15T07:40:29.6317131Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-storage-blob/12.29/azure_storage_blob-12.29.0-py3-none-any.whl (434 kB)
+2026-05-15T07:40:29.6318192Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 434.8/434.8 kB 39.9 MB/s eta 0:00:00
+2026-05-15T07:40:29.6318775Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_blob-12.29.0-py3-none-any.whl
+2026-05-15T07:40:29.6320055Z Successfully downloaded azure-storage-blob
+2026-05-15T07:40:29.6320777Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:29.6321832Z Collecting azure-storage-file-share
+2026-05-15T07:40:29.6323523Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-storage-file-share/12.25/azure_storage_file_share-12.25.0-py3-none-any.whl (316 kB)
+2026-05-15T07:40:29.6324968Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 316.5/316.5 kB 20.0 MB/s eta 0:00:00
+2026-05-15T07:40:29.6327263Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_file_share-12.25.0-py3-none-any.whl
+2026-05-15T07:40:29.6329179Z Successfully downloaded azure-storage-file-share
+2026-05-15T07:40:29.6330312Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:29.6331816Z Collecting azure-storage-file-datalake>=12.2.0
+2026-05-15T07:40:29.6338057Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-storage-file-datalake/12.24/azure_storage_file_datalake-12.24.0-py3-none-any.whl (285 kB)
+2026-05-15T07:40:29.6343521Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 285.9/285.9 kB 29.5 MB/s eta 0:00:00
+2026-05-15T07:40:29.6344211Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_file_datalake-12.24.0-py3-none-any.whl
+2026-05-15T07:40:29.6356015Z Successfully downloaded azure-storage-file-datalake
+2026-05-15T07:40:29.6357297Z Looking in indexes: https://build:***@pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple
+2026-05-15T07:40:29.6358651Z Collecting azure-monitor-opentelemetry
+2026-05-15T07:40:29.6362592Z   Downloading https://pkgs.dev.azure.com/azure-sdk/29ec6040-b234-4e31-b139-33dc4287b756/_packaging/3572dbf9-b5ef-433b-9137-fc4d7768e7cc/pypi/download/azure-monitor-opentelemetry/1.8.8/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl (41 kB)
+2026-05-15T07:40:29.6364871Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.4/41.4 kB 2.6 MB/s eta 0:00:00
+2026-05-15T07:40:29.6366009Z Saved /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl
+2026-05-15T07:40:29.6367108Z Successfully downloaded azure-monitor-opentelemetry
+2026-05-15T07:40:29.6367622Z sdist check completed with exit code -6
+2026-05-15T07:40:29.6368091Z =============================================================================
+2026-05-15T07:40:29.6368596Z ===== STDERR: sdist :: /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml (exit 250) =====
+2026-05-15T07:40:29.6375955Z 2026-05-15 07:39:36,463 [INFO] azure-sdk-tools: Installing from feed: https://build:***
+2026-05-15T07:40:29.6377362Z 2026-05-15 07:39:36,464 [INFO] azure-sdk-tools: Running sdist check...
+2026-05-15T07:40:29.6382188Z Using PyPy 3.11.15 interpreter at: /opt/hostedtoolcache/PyPy/3.11.15/x64/bin/python3
+2026-05-15T07:40:29.6382651Z Creating virtual environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist
+2026-05-15T07:40:29.6383671Z Activate with: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/bin/activate
+2026-05-15T07:40:29.6384152Z 2026-05-15 07:39:36,779 [INFO] root: Found whl azure_sdk_tools-0.0.0-py3-none-any.whl
+2026-05-15T07:40:29.6385172Z Using Python 3.11.15 environment at: .venv/azure-ai-ml/.venv_sdist
+2026-05-15T07:40:29.6385613Z Resolved 35 packages in 1.13s
+2026-05-15T07:40:29.6386005Z    Building pyyaml==6.0.3
+2026-05-15T07:40:29.6386390Z       Built pyyaml==6.0.3
+2026-05-15T07:40:29.6386768Z Prepared 9 packages in 11.21s
+2026-05-15T07:40:29.6387211Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:29.6387733Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:29.6389307Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:29.6389824Z Installed 35 packages in 278ms
+2026-05-15T07:40:29.6390197Z  + azure-core==1.40.0
+2026-05-15T07:40:29.6390654Z  + azure-sdk-tools==0.0.0 (from file:///mnt/vss/_work/1/a/azure_sdk_tools-0.0.0-py3-none-any.whl)
+2026-05-15T07:40:29.6391106Z  + bashlex==0.18
+2026-05-15T07:40:29.6391710Z  + bracex==2.6
+2026-05-15T07:40:29.6392066Z  + build==1.5.0
+2026-05-15T07:40:29.6392424Z  + certifi==2026.4.22
+2026-05-15T07:40:29.6393038Z  + charset-normalizer==3.4.7
+2026-05-15T07:40:29.6393367Z  + cibuildwheel==2.23.3
+2026-05-15T07:40:29.6393687Z  + configargparse==1.7.5
+2026-05-15T07:40:29.6393985Z  + coverage==7.14.0
+2026-05-15T07:40:29.6394298Z  + dependency-groups==1.3.1
+2026-05-15T07:40:29.6394604Z  + filelock==3.29.0
+2026-05-15T07:40:29.6394896Z  + idna==3.15
+2026-05-15T07:40:29.6395199Z  + iniconfig==2.3.0
+2026-05-15T07:40:29.6395493Z  + jinja2==3.1.6
+2026-05-15T07:40:29.6395784Z  + json-delta==2.0.2
+2026-05-15T07:40:29.6486844Z  + markupsafe==3.0.3
+2026-05-15T07:40:29.6487525Z  + packaging==26.2
+2026-05-15T07:40:29.6487962Z  + pkginfo==1.12.1.2
+2026-05-15T07:40:29.6488374Z  + platformdirs==4.9.6
+2026-05-15T07:40:29.6488771Z  + pluggy==1.6.0
+2026-05-15T07:40:29.6489161Z  + pygments==2.20.0
+2026-05-15T07:40:29.6489529Z  + pyparsing==3.1.4
+2026-05-15T07:40:29.6489937Z  + pyproject-hooks==1.2.0
+2026-05-15T07:40:29.6490358Z  + pytest==9.0.3
+2026-05-15T07:40:29.6490742Z  + pytest-asyncio==1.3.0
+2026-05-15T07:40:29.6491162Z  + pytest-cov==7.1.0
+2026-05-15T07:40:29.6491876Z  + python-dotenv==1.2.2
+2026-05-15T07:40:29.6492184Z  + pyyaml==6.0.3
+2026-05-15T07:40:29.6492485Z  + requests==2.34.2
+2026-05-15T07:40:29.6492785Z  + setuptools==82.0.1
+2026-05-15T07:40:29.6493078Z  + tomli-w==1.0.0
+2026-05-15T07:40:29.6493450Z  + typing-extensions==4.15.0
+2026-05-15T07:40:29.6494076Z  + urllib3==2.7.0
+2026-05-15T07:40:29.6494448Z  + wheel==0.47.0
+2026-05-15T07:40:29.6494953Z 2026-05-15 07:39:49,534 [INFO] azure-sdk-tools: Processing azure-ai-ml using interpreter /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/bin/python
+2026-05-15T07:40:29.6495617Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist
+2026-05-15T07:40:29.6496062Z Resolved 7 packages in 439ms
+2026-05-15T07:40:29.6496444Z Prepared 1 package in 69ms
+2026-05-15T07:40:29.6496811Z Uninstalled 4 packages in 5ms
+2026-05-15T07:40:29.6497247Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:29.6497769Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:29.6498287Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:29.6498739Z Installed 5 packages in 13ms
+2026-05-15T07:40:29.6499112Z  - build==1.5.0
+2026-05-15T07:40:29.6499463Z  + build==1.2.2.post1
+2026-05-15T07:40:29.6499826Z  - packaging==26.2
+2026-05-15T07:40:29.6500165Z  + packaging==24.2
+2026-05-15T07:40:29.6500515Z  + tomli==2.2.1
+2026-05-15T07:40:29.6500867Z  - urllib3==2.7.0
+2026-05-15T07:40:29.6501438Z  + urllib3==2.2.3
+2026-05-15T07:40:29.6501820Z  - wheel==0.47.0
+2026-05-15T07:40:29.6502192Z  + wheel==0.45.1
+2026-05-15T07:40:29.6502601Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist
+2026-05-15T07:40:29.6503026Z Resolved 27 packages in 1.22s
+2026-05-15T07:40:29.6503407Z Uninstalled 6 packages in 18ms
+2026-05-15T07:40:29.6503855Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:29.6504372Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:29.6504897Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:29.6505363Z Installed 17 packages in 68ms
+2026-05-15T07:40:29.6505736Z  + bandit==1.6.2
+2026-05-15T07:40:29.6506066Z  - coverage==7.14.0
+2026-05-15T07:40:29.6506418Z  + coverage==7.6.1
+2026-05-15T07:40:29.6506767Z  + execnet==2.1.2
+2026-05-15T07:40:29.6507122Z  + gitdb==4.0.12
+2026-05-15T07:40:29.6507453Z  + gitpython==3.1.50
+2026-05-15T07:40:29.6507809Z  + pbr==7.0.3
+2026-05-15T07:40:29.6508160Z  + pyproject-api==1.8.0
+2026-05-15T07:40:29.6508514Z  - pytest==9.0.3
+2026-05-15T07:40:29.6508873Z  + pytest==8.3.5
+2026-05-15T07:40:29.6509227Z  - pytest-asyncio==1.3.0
+2026-05-15T07:40:29.6509598Z  + pytest-asyncio==0.24.0
+2026-05-15T07:40:29.6510114Z  - pytest-cov==7.1.0
+2026-05-15T07:40:29.6510474Z  + pytest-cov==5.0.0
+2026-05-15T07:40:29.6510855Z  + pytest-custom-exit-code==0.3.0
+2026-05-15T07:40:29.6511506Z  + pytest-xdist==3.2.1
+2026-05-15T07:40:29.6511908Z  - python-dotenv==1.2.2
+2026-05-15T07:40:29.6512286Z  + python-dotenv==1.0.1
+2026-05-15T07:40:29.6512655Z  - pyyaml==6.0.3
+2026-05-15T07:40:29.6513007Z  + pyyaml==6.0.2
+2026-05-15T07:40:29.6513362Z  + six==1.17.0
+2026-05-15T07:40:29.6513706Z  + smmap==5.0.3
+2026-05-15T07:40:29.6514048Z  + stevedore==5.4.1
+2026-05-15T07:40:29.6514499Z 2026-05-15 07:39:51,427 [INFO] azure-sdk-tools: Installing dev requirements for /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml
+2026-05-15T07:40:29.6515033Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist
+2026-05-15T07:40:29.6515482Z Resolved 61 packages in 2.11s
+2026-05-15T07:40:29.6515866Z    Building marshmallow-jsonschema==0.10.0
+2026-05-15T07:40:29.6516252Z Downloading pip (1.7MiB)
+2026-05-15T07:40:29.6516598Z  Downloaded pip
+2026-05-15T07:40:29.6516985Z Downloading azure-mgmt-resource (2.3MiB)
+2026-05-15T07:40:29.6517375Z  Downloaded azure-mgmt-resource
+2026-05-15T07:40:29.6517759Z       Built marshmallow-jsonschema==0.10.0
+2026-05-15T07:40:29.6518141Z Prepared 24 packages in 1.16s
+2026-05-15T07:40:29.6518508Z Uninstalled 2 packages in 19ms
+2026-05-15T07:40:29.6519100Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:29.6519638Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:29.6520163Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:29.6520612Z Installed 27 packages in 270ms
+2026-05-15T07:40:29.6520987Z  + azure-common==1.1.28
+2026-05-15T07:40:29.6521573Z  - azure-core==1.40.0
+2026-05-15T07:40:29.6521977Z  + azure-core==1.41.0 (from file:///mnt/vss/_work/1/a/azure-core/azure_core-1.41.0-py3-none-any.whl)
+2026-05-15T07:40:29.6522437Z  + azure-identity==1.26.0b3 (from file:///mnt/vss/_work/1/a/azure_identity-1.26.0b3-py3-none-any.whl)
+2026-05-15T07:40:29.6522797Z  + azure-mgmt-core==1.6.0
+2026-05-15T07:40:29.6523095Z  + azure-mgmt-msi==7.1.0
+2026-05-15T07:40:29.6523403Z  + azure-mgmt-resource==22.0.0
+2026-05-15T07:40:29.6523724Z  + azure-mgmt-resourcegraph==8.0.1
+2026-05-15T07:40:29.6524030Z  + cryptography==48.0.0
+2026-05-15T07:40:29.6524357Z  + isodate==0.7.2
+2026-05-15T07:40:29.6524707Z  + marshmallow==3.26.2
+2026-05-15T07:40:29.6525083Z  + marshmallow-jsonschema==0.10.0
+2026-05-15T07:40:29.6525454Z  + mldesigner==0.1.0b22
+2026-05-15T07:40:29.6525795Z  + mock==5.2.0
+2026-05-15T07:40:29.6526151Z  + msal==1.36.0
+2026-05-15T07:40:29.6526510Z  + msal-extensions==1.3.1
+2026-05-15T07:40:29.6526880Z  + msrest==0.7.1
+2026-05-15T07:40:29.6527219Z  + oauthlib==3.3.1
+2026-05-15T07:40:29.6527562Z  + pip==26.1.1
+2026-05-15T07:40:29.6527900Z  + py==1.11.0
+2026-05-15T07:40:29.6528241Z  + pydash==8.0.6
+2026-05-15T07:40:29.6528582Z  + pyjwt==2.12.1
+2026-05-15T07:40:29.6528929Z  + pytest-forked==1.4.0
+2026-05-15T07:40:29.6529291Z  + pytest-mock==3.15.1
+2026-05-15T07:40:29.6529664Z  + pytest-reportlog==1.0.0
+2026-05-15T07:40:29.6530035Z  + pytest-timeout==2.4.0
+2026-05-15T07:40:29.6530413Z  + requests-oauthlib==2.0.0
+2026-05-15T07:40:29.6530790Z  - setuptools==82.0.1
+2026-05-15T07:40:29.6531141Z  + setuptools==77.0.3
+2026-05-15T07:40:29.6531886Z 2026-05-15 07:39:55,059 [INFO] azure-sdk-tools: Installing azure-ai-ml/azure_ai_ml-1.33.0.tar.gz from directory
+2026-05-15T07:40:29.6533155Z 2026-05-15 07:40:07,859 [INFO] azure-sdk-tools: Executing command from /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging:['uv', 'pip', 'install', '/mnt/vss/_work/1/a/azure-ai-ml/azure_ai_ml-1.33.0.tar.gz', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_mgmt_core-1.6.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_file_datalake-12.24.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_file_share-12.25.0-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_blob-12.29.0-py3-none-any.whl', '--python', '/mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/bin/python']
+2026-05-15T07:40:29.6534537Z Using Python 3.11.15 environment at: /mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist
+2026-05-15T07:40:29.6534982Z Resolved 60 packages in 3.35s
+2026-05-15T07:40:29.6535418Z    Building azure-ai-ml @ file:///mnt/vss/_work/1/a/azure-ai-ml/azure_ai_ml-1.33.0.tar.gz
+2026-05-15T07:40:29.6535890Z       Built azure-ai-ml @ file:///mnt/vss/_work/1/a/azure-ai-ml/azure_ai_ml-1.33.0.tar.gz
+2026-05-15T07:40:29.6536307Z Prepared 10 packages in 7.36s
+2026-05-15T07:40:29.6536660Z Uninstalled 1 package in 1ms
+2026-05-15T07:40:29.6537101Z warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+2026-05-15T07:40:29.6537607Z          If the cache and target directories are on different filesystems, hardlinking may not be supported.
+2026-05-15T07:40:29.6538124Z          If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+2026-05-15T07:40:29.6538724Z Installed 39 packages in 498ms
+2026-05-15T07:40:29.6539095Z  + asgiref==3.11.1
+2026-05-15T07:40:29.6539437Z  + attrs==26.1.0
+2026-05-15T07:40:29.6539856Z  + azure-ai-ml==1.33.0 (from file:///mnt/vss/_work/1/a/azure-ai-ml/azure_ai_ml-1.33.0.tar.gz)
+2026-05-15T07:40:29.6540323Z  + azure-core-tracing-opentelemetry==1.0.0b13
+2026-05-15T07:40:29.6540723Z  - azure-mgmt-core==1.6.0
+2026-05-15T07:40:29.6541407Z  + azure-mgmt-core==1.6.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_mgmt_core-1.6.0-py3-none-any.whl)
+2026-05-15T07:40:29.6542068Z  + azure-monitor-opentelemetry==1.8.8 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_monitor_opentelemetry-1.8.8-py3-none-any.whl)
+2026-05-15T07:40:29.6542646Z  + azure-monitor-opentelemetry-exporter==1.0.0b52
+2026-05-15T07:40:29.6543165Z  + azure-storage-blob==12.29.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_blob-12.29.0-py3-none-any.whl)
+2026-05-15T07:40:29.6543817Z  + azure-storage-file-datalake==12.24.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_file_datalake-12.24.0-py3-none-any.whl)
+2026-05-15T07:40:29.6544457Z  + azure-storage-file-share==12.25.0 (from file:///mnt/vss/_work/1/s/.venv/azure-ai-ml/.venv_sdist/.staging/dl/azure_storage_file_share-12.25.0-py3-none-any.whl)
+2026-05-15T07:40:29.6544964Z  + colorama==0.4.6
+2026-05-15T07:40:29.6545335Z  + importlib-metadata==8.7.1
+2026-05-15T07:40:29.6545707Z  + jsonschema==4.26.0
+2026-05-15T07:40:29.6546077Z  + jsonschema-specifications==2025.9.1
+2026-05-15T07:40:29.6546468Z  + opentelemetry-api==1.40.0
+2026-05-15T07:40:29.6546862Z  + opentelemetry-instrumentation==0.61b0
+2026-05-15T07:40:29.6547270Z  + opentelemetry-instrumentation-asgi==0.61b0
+2026-05-15T07:40:29.6547683Z  + opentelemetry-instrumentation-dbapi==0.61b0
+2026-05-15T07:40:29.6548093Z  + opentelemetry-instrumentation-django==0.61b0
+2026-05-15T07:40:29.6548478Z  + opentelemetry-instrumentation-fastapi==0.61b0
+2026-05-15T07:40:29.6548918Z  + opentelemetry-instrumentation-flask==0.61b0
+2026-05-15T07:40:29.6549328Z  + opentelemetry-instrumentation-logging==0.61b0
+2026-05-15T07:40:29.6549756Z  + opentelemetry-instrumentation-psycopg2==0.61b0
+2026-05-15T07:40:29.6550167Z  + opentelemetry-instrumentation-requests==0.61b0
+2026-05-15T07:40:29.6550576Z  + opentelemetry-instrumentation-urllib==0.61b0
+2026-05-15T07:40:29.6550994Z  + opentelemetry-instrumentation-urllib3==0.61b0
+2026-05-15T07:40:29.6551631Z  + opentelemetry-instrumentation-wsgi==0.61b0
+2026-05-15T07:40:29.6552059Z  + opentelemetry-resource-detector-azure==0.1.5
+2026-05-15T07:40:29.6552445Z  + opentelemetry-sdk==1.40.0
+2026-05-15T07:40:29.6552994Z  + opentelemetry-semantic-conventions==0.61b0
+2026-05-15T07:40:29.6553406Z  + opentelemetry-util-http==0.61b0
+2026-05-15T07:40:29.6553792Z  + psutil==7.2.2
+2026-05-15T07:40:29.6554170Z  + python-dateutil==2.9.0.post0
+2026-05-15T07:40:29.6554549Z  + referencing==0.37.0
+2026-05-15T07:40:29.6554902Z  + rpds-py==0.30.0
+2026-05-15T07:40:29.6555268Z  + strictyaml==1.7.3
+2026-05-15T07:40:29.6555605Z  + tqdm==4.67.3
+2026-05-15T07:40:29.6555947Z  + wrapt==1.17.3
+2026-05-15T07:40:29.6556292Z  + zipp==3.23.1
+2026-05-15T07:40:29.6556718Z 2026-05-15 07:40:19,112 [INFO] azure-sdk-tools: Installed azure-ai-ml/azure_ai_ml-1.33.0.tar.gz
+2026-05-15T07:40:29.6557579Z 2026-05-15 07:40:19,113 [INFO] azure-sdk-tools: Running pytest for azure-ai-ml with command: ['pytest', '-rsfE', '--junitxml=/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml/test-junit-sdist.xml', '--verbose', '--cov-branch', '--durations=10', '--ignore=azure', '--ignore=.tox', '--ignore=build', '--ignore=.eggs', '--ignore=samples', '--log-cli-level=51', '--ignore-glob=**/.venv*', '--ignore-glob=**/.venv*/**', '/mnt/vss/_work/1/s/sdk/ml/azure-ai-ml']
+2026-05-15T07:40:30.3845626Z 2026-05-15 07:40:29,620 [ERROR] azure-sdk-tools: pytest failed for azure-ai-ml with exit code -6.
+2026-05-15T07:40:30.3846398Z =============================================================================
+2026-05-15T07:40:30.3847011Z ##[endgroup]
+2026-05-15T07:40:30.3847141Z 
+2026-05-15T07:40:30.3847323Z === SUMMARY ===
+2026-05-15T07:40:30.3847530Z PACKAGE                                CHECK  STATUS  DURATION(s)
+2026-05-15T07:40:30.3847764Z -----------------------------------------------------------------
+2026-05-15T07:40:30.3848037Z /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml  sdist  FAIL(250)       53.76
+2026-05-15T07:40:30.3848277Z /mnt/vss/_work/1/s/sdk/ml/azure-ai-ml  whl    FAIL(250)       52.13
+2026-05-15T07:40:30.3848410Z 
+2026-05-15T07:40:30.3848605Z Total checks: 2 | Failed: 2 | Worst exit code: 250
+2026-05-15T07:40:30.4503796Z 
+2026-05-15T07:40:30.4524240Z ##[debug]Process exited with code 1 and signal null for tool '/usr/bin/pwsh'
+2026-05-15T07:40:30.4525291Z ##[debug]STDIO streams have closed and received exit code 1 and signal null for tool '/usr/bin/pwsh'
+2026-05-15T07:40:30.4529944Z ##[debug]task result: Failed
+2026-05-15T07:40:30.4556984Z ##[error]PowerShell exited with code '1'.
+2026-05-15T07:40:30.4564889Z ##[debug]Processed: ##vso[task.issue type=error;source=TaskInternal;correlationId=d33f1fef-87bf-409a-a45a-79115a71e2eb;]PowerShell exited with code '1'.
+2026-05-15T07:40:30.4566331Z ##[debug]Processed: ##vso[task.complete result=Failed;]PowerShell exited with code '1'.
+2026-05-15T07:40:30.4594741Z ##[section]Finishing: Run Tests

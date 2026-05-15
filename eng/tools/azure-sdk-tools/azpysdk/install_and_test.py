@@ -110,13 +110,27 @@ class InstallAndTest(Check):
     def run_pytest(
         self, executable: str, staging_directory: str, package_dir: str, package_name: str, pytest_args: List[str]
     ) -> int:
-        # Probe: invoke pytest via 'python -X faulthandler -X dev -m pytest' so any
-        # SIGABRT/SIGSEGV in the child dumps a Python+C traceback before the process
-        # dies. Also enables developer-mode warnings. Safe no-op when no fatal signal.
-        pytest_command = ["-X", "faulthandler", "-X", "dev", "-m", "pytest", *pytest_args]
+        # Probe: invoke pytest via 'python -X faulthandler -X dev -X importtime -u -m pytest'
+        # so any SIGABRT/SIGSEGV in the child dumps a Python+C traceback before the process
+        # dies, and the last printed import on stderr identifies the module that crashes.
+        # PYTHONUNBUFFERED=1 ensures every line is flushed immediately.
+        pytest_command = [
+            "-X", "faulthandler",
+            "-X", "dev",
+            "-X", "importtime",
+            "-u",
+            "-m", "pytest",
+            *pytest_args,
+        ]
 
         environment = os.environ.copy()
-        environment.update({"PYTHONPYCACHEPREFIX": staging_directory, "PYTHONFAULTHANDLER": "1"})
+        environment.update(
+            {
+                "PYTHONPYCACHEPREFIX": staging_directory,
+                "PYTHONFAULTHANDLER": "1",
+                "PYTHONUNBUFFERED": "1",
+            }
+        )
 
         logger.info(f"Running pytest for {package_name} with command: {[executable, *pytest_command]}")
         logger.debug(f"with environment vars: {environment}")
