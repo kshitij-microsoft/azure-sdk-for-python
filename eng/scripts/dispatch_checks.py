@@ -173,6 +173,10 @@ async def run_check(
         logger.info(f"[START {idx}/{total}] {check} :: {package}\nCMD: {' '.join(cmd)}")
         env = os.environ.copy()
         env["PROXY_URL"] = f"http://localhost:{proxy_port}"
+        # Probe: enable Python faulthandler so any SIGABRT/SIGSEGV in child pytest
+        # processes dumps a C-level traceback before the process dies. Safe no-op
+        # when no fatal signal occurs.
+        env["PYTHONFAULTHANDLER"] = "1"
 
         if in_ci():
             env["PROXY_ASSETS_FOLDER"] = os.path.join(root_dir, ".assets_distributed", str(proxy_port))
