@@ -12,6 +12,54 @@ steps:
       }
     displayName: 'Use Public Feed'
 
+  # Workaround for https://github.com/Azure/azure-sdk-for-python/issues/<TBD>:
+  # PyPy 7.3.21 (currently in the hosted toolcache for Python 3.11.15) crashes
+  # with `Fatal RPython error: AssertionError` from
+  # `PythonCodeMaker_duplicate_exits_without_lineno` while compiling
+  # `azure.ai.ml`. PyPy 7.3.22+ does not exhibit this bug. When the requested
+  # interpreter is pypy3.11, overlay PyPy 7.3.22 onto the toolcache so
+  # UsePythonVersion@0 resolves to the patched build.
+  - bash: |
+      set -euo pipefail
+      VERSION_SPEC="${{ parameters.versionSpec }}"
+      case "$VERSION_SPEC" in
+        pypy3.11*)
+          PYPY_BUILD=v7.3.22
+          PY_LANG=3.11.15
+          TARGET=/opt/hostedtoolcache/PyPy/${PY_LANG}/x64
+          if [ -x "${TARGET}/bin/python3" ]; then
+            CURRENT=$("${TARGET}/bin/python3" -c 'import sys; v=sys.pypy_version_info; print(f"{v.major}.{v.minor}.{v.micro}")') || CURRENT="unknown"
+            echo "Existing toolcache PyPy: ${CURRENT}"
+            if [ "$CURRENT" = "7.3.22" ]; then
+              echo "PyPy 7.3.22 already installed; nothing to do."
+              exit 0
+            fi
+          fi
+          echo "Installing PyPy ${PYPY_BUILD} for Python ${PY_LANG} into ${TARGET}..."
+          TARBALL="pypy3.11-${PYPY_BUILD}-linux64.tar.bz2"
+          cd /tmp
+          curl -sSLO "https://downloads.python.org/pypy/${TARBALL}"
+          tar xjf "${TARBALL}"
+          sudo rm -rf "${TARGET}"
+          sudo mkdir -p "$(dirname "${TARGET}")"
+          sudo mv "pypy3.11-${PYPY_BUILD}-linux64" "${TARGET}"
+          # Recreate the python3/python symlinks that the upstream toolcache layout provides.
+          if [ ! -e "${TARGET}/bin/python3" ]; then
+            sudo ln -sf "${TARGET}/bin/pypy3.11" "${TARGET}/bin/python3"
+          fi
+          if [ ! -e "${TARGET}/bin/python" ]; then
+            sudo ln -sf "${TARGET}/bin/pypy3.11" "${TARGET}/bin/python"
+          fi
+          sudo touch "${TARGET}.complete"
+          "${TARGET}/bin/python3" --version
+          ;;
+        *)
+          echo "versionSpec '${VERSION_SPEC}' is not pypy; nothing to do."
+          ;;
+      esac
+    displayName: 'Pin PyPy to v7.3.22 (workaround for RPython AssertionError in 7.3.21)'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
   - task: UsePythonVersion@0
     displayName: "Use Python ${{ parameters.versionSpec }}"
     inputs:

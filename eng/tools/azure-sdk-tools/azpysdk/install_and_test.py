@@ -110,81 +110,13 @@ class InstallAndTest(Check):
     def run_pytest(
         self, executable: str, staging_directory: str, package_dir: str, package_name: str, pytest_args: List[str]
     ) -> int:
-        # Probe: previous bash-wrap probe showed pytest writes ZERO bytes before
-        # SIGABRT (rc=134) -> the abort is in PyPy interpreter / site init, not in
-        # any user import. This probe binary-searches the cause:
-        #   1. python -V                 (does the interpreter even start?)
-        #   2. python -c 'print("hi")'   (does site init complete?)
-        #   3. python -c 'import azure.core'      etc, one suspect at a time
-        # Each step is captured to its own log; the FIRST step that aborts is
-        # the culprit. Then we still try the real pytest invocation.
-        log_dir = staging_directory
-        try:
-            os.makedirs(log_dir, exist_ok=True)
-        except Exception:
-            pass
-
-        def _q(s: str) -> str:
-            return "'" + s.replace("'", "'\\''") + "'"
-
-        probe_steps = [
-            ("00_version", [executable, "-V"]),
-            ("01_print",   [executable, "-S", "-c", "print('hi')"]),  # -S skips site
-            ("02_site",    [executable, "-c", "print('hi')"]),         # with site
-            ("03_psutil",  [executable, "-c", "import psutil; print(psutil.__version__)"]),
-            ("04_otelapi", [executable, "-c", "import opentelemetry; print(opentelemetry.__file__)"]),
-            ("05_otelsdk", [executable, "-c", "import opentelemetry.sdk; print(opentelemetry.sdk.__file__)"]),
-            ("06_azmon",   [executable, "-c", "import azure.monitor.opentelemetry; print('azmon ok')"]),
-            ("07_azmonexp",[executable, "-c", "import azure.monitor.opentelemetry.exporter; print('exp ok')"]),
-            ("08_azcore",  [executable, "-c", "import azure.core; print(azure.core.__version__)"]),
-            ("09_azid",    [executable, "-c", "import azure.identity; print(azure.identity.__version__)"]),
-            ("10_aiml",    [executable, "-c", "import azure.ai.ml; print('aiml ok')"]),
-            ("11_pytest",  [executable, "-c", "import pytest; print(pytest.__version__)"]),
-        ]
-
-        probe_lines = ["echo '=== probe: starting incremental import probes ==='"]
-        for name, cmd in probe_steps:
-            log_path = os.path.join(log_dir, f"probe_{name}.log")
-            cmd_str = " ".join(_q(a) for a in cmd)
-            probe_lines.append(f"echo '--- probe step {name} ---'")
-            probe_lines.append(f"set +e; ({cmd_str}) >{_q(log_path)} 2>&1; rc=$?; set -e")
-            probe_lines.append(f"echo '  rc='$rc")
-            probe_lines.append(f"cat {_q(log_path)} | sed 's/^/  out| /'")
-            probe_lines.append(
-                f"if [ $rc -ne 0 ]; then echo '*** probe step {name} FAILED with rc='$rc' ***'; fi"
-            )
-
-        # Then attempt the real pytest run, capturing stderr separately
-        inner_args = [executable, "-X", "faulthandler", "-X", "dev", "-X", "importtime", "-u", "-m", "pytest", *pytest_args]
-        inner_cmd = " ".join(_q(a) for a in inner_args)
-        pytest_stdout = os.path.join(log_dir, "pytest_stdout.log")
-        pytest_stderr = os.path.join(log_dir, "pytest_stderr.log")
-        probe_lines.append("echo '=== probe: launching real pytest ==='")
-        probe_lines.append(
-            f"set +e; ({inner_cmd}) >{_q(pytest_stdout)} 2>{_q(pytest_stderr)}; rc=$?; set -e"
-        )
-        probe_lines.append("echo '=== probe: pytest exited with rc='$rc' ==='")
-        probe_lines.append("echo '--- pytest stdout (last 200 lines) ---'")
-        probe_lines.append(f"tail -n 200 {_q(pytest_stdout)} | sed 's/^/  stdout| /'")
-        probe_lines.append("echo '--- pytest stderr (last 200 lines) ---'")
-        probe_lines.append(f"tail -n 200 {_q(pytest_stderr)} | sed 's/^/  stderr| /'")
-        probe_lines.append("echo '--- byte counts ---'")
-        probe_lines.append(f"wc -c {_q(pytest_stdout)} {_q(pytest_stderr)} 2>/dev/null || true")
-        probe_lines.append("exit $rc")
-
-        bash_script = "\n".join(probe_lines)
-        pytest_command = ["/bin/bash", "-c", bash_script]
+        pytest_command = ["pytest", *pytest_args]
 
         environment = os.environ.copy()
-        environment.update(
-            {
-                "PYTHONPYCACHEPREFIX": staging_directory,
-                "PYTHONFAULTHANDLER": "1",
-                "PYTHONUNBUFFERED": "1",
-            }
-        )
+        environment.update({"PYTHONPYCACHEPREFIX": staging_directory})
 
-        logger.info(f"Running pytest probe for {package_name} (incremental import diagnostic)")
+        logger.info(f"Running pytest for {package_name} with command: {pytest_command}")
+        logger.debug(f"with environment vars: {environment}")
 
         pytest_result = self.run_venv_command(
             executable,
