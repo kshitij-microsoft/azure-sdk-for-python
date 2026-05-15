@@ -52,6 +52,14 @@ steps:
           fi
           sudo touch "${TARGET}.complete"
           "${TARGET}/bin/python3" --version
+          # The plain pypy tarball does not include pip; the Azure hosted
+          # toolcache build does. Bootstrap pip via ensurepip so downstream
+          # steps (e.g. `python -m pip install uv`) keep working.
+          if ! "${TARGET}/bin/python3" -c "import pip" >/dev/null 2>&1; then
+            echo "Bootstrapping pip via ensurepip..."
+            sudo "${TARGET}/bin/python3" -m ensurepip --upgrade
+          fi
+          "${TARGET}/bin/python3" -m pip --version
           ;;
         *)
           echo "versionSpec '${VERSION_SPEC}' is not pypy; nothing to do."
