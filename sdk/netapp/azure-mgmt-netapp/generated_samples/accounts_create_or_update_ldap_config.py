@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long,useless-suppression
 # coding=utf-8
 # --------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -37,9 +38,22 @@ def main():
             "location": "eastus",
             "properties": {
                 "ldapConfiguration": {
+                    "bindAuthenticationLevel": "Simple",
+                    "bindDN": "cn=user,dc=domain,dc=com",
+                    "bindPasswordAkvConfig": {
+                        "azureKeyVaultUri": "https://myvault.vault.azure.net/",
+                        "secretName": "bindPassword",
+                        "userAssignedIdentity": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myRG/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myIdentity",
+                    },
+                    "certificateCNHost": "ldap.krypton.com",
                     "domain": "example.com",
-                    "ldapOverTLS": False,
+                    "groupDN": "OU=subdirectory,OU=directory,DC=example,DC=com",
+                    "ldapPort": 636,
                     "ldapServers": ["192.0.2.1", "192.0.2.2"],
+                    "netGroupDN": "OU=subdirectory,OU=directory,DC=example,DC=com",
+                    "secureLdapType": "LdapOverTLS",
+                    "serverCACertificate": "<REDACTED>",
+                    "userDN": "OU=subdirectory,OU=directory,DC=example,DC=com",
                 }
             },
         },
@@ -47,6 +61,6 @@ def main():
     print(response)
 
 
-# x-ms-original-file: 2025-12-15-preview/Accounts_CreateOrUpdateLdapConfig.json
+# x-ms-original-file: 2026-06-15-preview/Accounts_CreateOrUpdateLdapConfig.json
 if __name__ == "__main__":
     main()

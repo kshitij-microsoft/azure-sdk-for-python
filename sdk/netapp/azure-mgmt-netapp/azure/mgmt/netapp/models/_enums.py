@@ -82,6 +82,15 @@ class BackupType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Scheduled backup."""
 
 
+class BindAuthenticationLevel(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """The authentication level to use when binding to the LDAP server."""
+
+    ANONYMOUS = "Anonymous"
+    """Anonymous bind i.e. no credentials provided."""
+    SIMPLE = "Simple"
+    """Simple bind i.e. plain text credentials provided."""
+
+
 class BreakthroughMode(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Specifies whether the volume operates in Breakthrough Mode. When set to 'Enabled', the volume
     runs on the resources configured for this mode, delivering improved performance and higher
@@ -115,6 +124,17 @@ class BucketPermissions(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Read-only access to bucket."""
     READ_WRITE = "ReadWrite"
     """Read-write access to bucket."""
+
+
+class CacheFileAccessLogs(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """Flag indicating whether file access logs are enabled for the Cache, based on active diagnostic
+    settings present on the Cache.
+    """
+
+    ENABLED = "Enabled"
+    """fileAccessLogs are enabled."""
+    DISABLED = "Disabled"
+    """fileAccessLogs are not enabled."""
 
 
 class CacheLifeCycleState(str, Enum, metaclass=CaseInsensitiveEnumMeta):
@@ -458,7 +478,9 @@ class ElasticVolumeRestorationState(str, Enum, metaclass=CaseInsensitiveEnumMeta
 
 
 class EnableSubvolumes(str, Enum, metaclass=CaseInsensitiveEnumMeta):
-    """Flag indicating whether subvolume operations are enabled on the volume."""
+    """Flag indicating whether subvolume operations are enabled on the volume Deprecated. This type
+    will be removed in a future API version.
+    """
 
     ENABLED = "Enabled"
     """subvolumes are enabled."""
@@ -879,6 +901,17 @@ class ReplicationType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
     """Cross region replication."""
     CROSS_ZONE_REPLICATION = "CrossZoneReplication"
     """Cross zone replication."""
+
+
+class SecureLdapType(str, Enum, metaclass=CaseInsensitiveEnumMeta):
+    """Indicates the secure LDAP mode for encrypting communication between ANF storage and customer
+    LDAP servers.
+    """
+
+    LDAP_OVER_TLS = "LdapOverTLS"
+    """LDAP traffic is encrypted using LDAP over TLS."""
+    NONE = "None"
+    """LDAP traffic is not encrypted."""
 
 
 class SecurityStyle(str, Enum, metaclass=CaseInsensitiveEnumMeta):

@@ -33,6 +33,7 @@ from azure.monitor.opentelemetry.exporter._constants import (
     _AZURE_AI_SDK_NAME,
     _EXPORTER_DOMAIN_SCHEMA_VERSION,
     _INSTRUMENTATION_SUPPORTING_METRICS_LIST,
+    _MICROSOFT_CUSTOM_MEASUREMENTS,
     _SAMPLE_RATE_KEY,
     _METRIC_ENVELOPE_NAME,
     _MESSAGE_ENVELOPE_NAME,
@@ -115,6 +116,7 @@ _STANDARD_OPENTELEMETRY_HTTP_ATTRIBUTES = [
 
 _STANDARD_AZURE_MONITOR_ATTRIBUTES = [
     _SAMPLE_RATE_KEY,
+    _MICROSOFT_CUSTOM_MEASUREMENTS,
 ]
 
 _GEN_AI_ATTRIBUTE_PREFIX = "GenAI | {}"
@@ -257,6 +259,7 @@ def _convert_span_to_envelope(span: ReadableSpan) -> TelemetryItem:
         envelope.tags[ContextTagKeys.AI_OPERATION_SYNTHETIC_SOURCE] = "True"
     if span.parent and span.parent.span_id:
         envelope.tags[ContextTagKeys.AI_OPERATION_PARENT_ID] = "{:016x}".format(span.parent.span_id)
+    measurements = _utils._filter_custom_measurements(span.attributes)
     if span.kind in (SpanKind.CONSUMER, SpanKind.SERVER):
         envelope.name = _REQUEST_ENVELOPE_NAME
         data = RequestData(
@@ -267,7 +270,7 @@ def _convert_span_to_envelope(span: ReadableSpan) -> TelemetryItem:
             response_code="0",
             success=span.status.is_ok,
             properties={},
-            measurements={},
+            measurements=measurements,
         )
         envelope.data = MonitorBase(base_data=data, base_type="RequestData")
         envelope.tags[ContextTagKeys.AI_OPERATION_NAME] = span.name
@@ -324,8 +327,7 @@ def _convert_span_to_envelope(span: ReadableSpan) -> TelemetryItem:
             else:
                 status_code = 0
             data.response_code = str(status_code)
-            # Success criteria for server spans depends on span.success and the actual status code
-            data.success = span.status.is_ok and status_code and status_code not in range(400, 500)
+            data.success = span.status.is_ok and _utils._is_status_code_success(status_code, is_trace=True)
         elif SpanAttributes.MESSAGING_SYSTEM in span.attributes:  # Messaging
             if span.attributes.get(SpanAttributes.MESSAGING_DESTINATION):
                 if span.attributes.get(CLIENT_ADDRESS) or span.attributes.get(SpanAttributes.NET_PEER_NAME):
@@ -363,6 +365,7 @@ def _convert_span_to_envelope(span: ReadableSpan) -> TelemetryItem:
             duration=_utils.ns_to_duration(time),
             success=span.status.is_ok,  # Success depends only on span status
             properties={},
+            measurements=measurements,
         )
         envelope.data = MonitorBase(base_data=data, base_type="RemoteDependencyData")
         envelope.tags[ContextTagKeys.AI_OPERATION_NAME] = span.name
@@ -549,6 +552,7 @@ def _convert_span_events_to_envelopes(span: ReadableSpan) -> Sequence[TelemetryI
         properties = _utils._filter_custom_properties(
             event.attributes, lambda key, val: not _is_standard_attribute(key)
         )
+        measurements = _utils._filter_custom_measurements(event.attributes)
         if event.name == "exception":
             envelope.name = _EXCEPTION_ENVELOPE_NAME
             exc_type = exc_message = stack_trace = None
@@ -570,6 +574,7 @@ def _convert_span_events_to_envelopes(span: ReadableSpan) -> Sequence[TelemetryI
             data = TelemetryExceptionData(
                 version=_EXPORTER_DOMAIN_SCHEMA_VERSION,
                 properties=properties,
+                measurements=measurements,
                 exceptions=[exc_details],
             )
             envelope.data = MonitorBase(base_data=data, base_type="ExceptionData")
@@ -579,6 +584,7 @@ def _convert_span_events_to_envelopes(span: ReadableSpan) -> Sequence[TelemetryI
                 version=_EXPORTER_DOMAIN_SCHEMA_VERSION,
                 message=str(event.name)[:32768],
                 properties=properties,
+                measurements=measurements,
             )
             envelope.data = MonitorBase(base_data=data, base_type="MessageData")
 

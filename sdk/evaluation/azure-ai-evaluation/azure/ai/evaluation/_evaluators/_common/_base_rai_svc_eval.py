@@ -5,6 +5,10 @@ from typing import Any, Dict, List, TypeVar, Union, Optional
 
 from typing_extensions import override
 
+from azure.ai.evaluation._evaluators._common._conversation_input import (
+    hoist_messages_to_conversation,
+)
+
 from azure.ai.evaluation._common.constants import (
     EvaluationMetrics,
     _InternalEvaluationMetrics,
@@ -53,6 +57,9 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
     :keyword _use_legacy_endpoint: Whether to use the legacy evaluation endpoint instead of the sync_evals endpoint.
         Defaults to False. Can be passed as a keyword argument.
     :paramtype _use_legacy_endpoint: bool
+    :keyword extra_headers: Additional HTTP headers to include in every backend request.
+        Can be passed as a keyword argument.
+    :paramtype extra_headers: Optional[Dict[str, str]]
     """
 
     @override
@@ -83,6 +90,8 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
         self._higher_is_better = _higher_is_better
         # Handle _use_legacy_endpoint parameter from kwargs
         self._use_legacy_endpoint = kwargs.get("_use_legacy_endpoint", False)
+        # Handle extra_headers parameter from kwargs
+        self._extra_headers: Optional[Dict[str, str]] = kwargs.get("extra_headers", None)
 
     @override
     def __call__(  # pylint: disable=docstring-missing-param
@@ -107,6 +116,11 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
 
     @override
     def _convert_kwargs_to_eval_input(self, **kwargs):
+        # Normalize a bare ``messages=[...]`` kwarg (plus optional scalar ``context``
+        # / ``ground_truth`` / ``tool_definitions``) into ``conversation={...}`` so
+        # RAI safety evaluators route messages-shape input through the
+        # ``_evaluate_conversation`` path instead of failing kwarg matching.
+        hoist_messages_to_conversation(kwargs)
         if self._use_legacy_endpoint and "conversation" in kwargs and kwargs["conversation"] is not None:
             # Legacy endpoint: pass conversation through intact so _evaluate_conversation
             # can send all messages in a single API call (pre-sync-migration behavior).
@@ -150,6 +164,7 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
                 project_scope=self._azure_ai_project,
                 credential=self._credential,
                 use_legacy_endpoint=True,
+                extra_headers=self._extra_headers,
             )
             # Wrap as single-turn result and aggregate to produce evaluation_per_turn structure
             return self._aggregate_results([result])
@@ -166,6 +181,7 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
                 project_scope=self._azure_ai_project,
                 credential=self._credential,
                 use_legacy_endpoint=self._use_legacy_endpoint,
+                extra_headers=self._extra_headers,
             )
             parsed = self._parse_eval_result(turn_result)
             per_turn_results.append(parsed)
@@ -233,6 +249,7 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
             annotation_task=self._get_task(),
             evaluator_name=self.__class__.__name__,
             use_legacy_endpoint=self._use_legacy_endpoint,
+            extra_headers=self._extra_headers,
         )
 
         # Legacy endpoint returns a pre-parsed dict from parse_response(); return directly
@@ -321,7 +338,7 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
 
                         # Extract details from scoreProperties
                         if score_properties:
-                            parsed_result[f"{self._eval_metric. value}_details"] = _prepare_details(score_properties)
+                            parsed_result[f"{self._eval_metric.value}_details"] = _prepare_details(score_properties)
 
                         # Extract token counts from metrics
                         metrics = properties.get("metrics", {})
@@ -339,7 +356,7 @@ class RaiServiceEvaluatorBase(EvaluatorBase[T]):
                             total_tokens = ""
 
                         # Add token metadata (matching old format)
-                        parsed_result[f"{self._eval_metric. value}_total_tokens"] = total_tokens
+                        parsed_result[f"{self._eval_metric.value}_total_tokens"] = total_tokens
                         parsed_result[f"{self._eval_metric.value}_prompt_tokens"] = prompt_tokens
                         parsed_result[f"{self._eval_metric.value}_completion_tokens"] = completion_tokens
 

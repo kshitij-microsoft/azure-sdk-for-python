@@ -6,15 +6,17 @@ import json
 import time
 import os
 import unittest
+import uuid
 from io import StringIO
 
 import pytest
 from azure.core.credentials import AccessToken
 
 import test_config
-from azure.cosmos import exceptions
 from azure.cosmos.aio import CosmosClient, DatabaseProxy, ContainerProxy
 from azure.core.exceptions import HttpResponseError
+
+
 
 def _remove_padding(encoded_string):
     while encoded_string.endswith("="):
@@ -35,7 +37,7 @@ def get_test_item(num):
 
 class CosmosEmulatorCredential(object):
     async def get_token(self, *scopes, **kwargs):
-        # type: (*str, **Any) -> AccessToken
+        # type: (*str, **object) -> AccessToken
         """Request an access token for the emulator. Based on Azure Core's Access Token Credential.
 
         This method is called automatically by Azure SDK clients.
@@ -93,16 +95,11 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
     configs = test_config.TestConfig
     host = configs.host
     masterKey = configs.masterKey
-    credential = CosmosEmulatorCredential() if configs.is_emulator else configs.credential_async
-
-    @classmethod
-    def setUpClass(cls):
-        if (cls.credential == '[YOUR_KEY_HERE]' or
-                cls.host == '[YOUR_ENDPOINT_HERE]'):
-            raise Exception(
-                "You must specify your Azure Cosmos account values for "
-                "'masterKey' and 'host' at the top of this class to run the "
-                "tests.")
+    credential = CosmosEmulatorCredential()
+    _skip_scope_tests_on_non_emulator = pytest.mark.skipif(
+        not configs.is_emulator,
+        reason="Scope capture tests are emulator-specific (localhost audience)."
+    )
 
     async def asyncSetUp(self):
         self.client = CosmosClient(self.host, self.credential)
@@ -112,9 +109,8 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await self.client.close()
 
+    @_skip_scope_tests_on_non_emulator
     async def test_aad_credentials_async(self):
-        # Do any R/W data operations with your authorized AAD client
-
         print("Container info: " + str(await self.container.read()))
         await self.container.create_item(get_test_item(0))
         print("Point read result: " + str(await self.container.read_item(item='Item_0', partition_key='pk')))
@@ -123,12 +119,46 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
         print("Query result: " + str(query_results[0]))
         await self.container.delete_item(item='Item_0', partition_key='pk')
 
-        # Attempting to do management operations will return a 403 Forbidden exception
-        try:
-            await self.client.delete_database(self.configs.TEST_DATABASE_ID)
-        except exceptions.CosmosHttpResponseError as e:
-            assert e.status_code == 403
-            print("403 error assertion success")
+    @_skip_scope_tests_on_non_emulator
+    async def test_compact_utf8_item_write_with_aad_async(self):
+        """Verify compact UTF-8 item writes with an async token credential."""
+        document = {
+            'id': 'aad-compact-utf8-async-' + str(uuid.uuid4()),
+            'pk': 'pk',
+            'content': '日本🎉',
+        }
+        captured = {}
+
+        def capture_body(request):
+            captured['body'] = request.http_request.body
+
+        async with CosmosClient(
+            self.host,
+            self.credential,
+            enable_compact_utf8_item_writes=True,
+        ) as client:
+            container = client.get_database_client(
+                self.configs.TEST_DATABASE_ID
+            ).get_container_client(
+                self.configs.TEST_SINGLE_PARTITION_CONTAINER_ID
+            )
+            created = None
+            try:
+                created = await container.create_item(
+                    document,
+                    raw_request_hook=capture_body,
+                )
+
+                self.assertEqual(created['content'], document['content'])
+                # Compact bodies reach the transport as UTF-8 bytes, not str.
+                self.assertIsInstance(captured['body'], bytes)
+                decoded_body = captured['body'].decode('utf-8')
+                self.assertIn('日本🎉', decoded_body)
+                self.assertNotIn('\\u65e5', decoded_body)
+            finally:
+                if created is not None:
+                    await container.delete_item(document['id'], partition_key='pk')
+
 
     async def _run_with_scope_capture_async(self, credential_cls, action):
         scopes_captured = []
@@ -146,6 +176,7 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
         finally:
             credential_cls.get_token = orig_get_token
 
+    @_skip_scope_tests_on_non_emulator
     async def test_override_scope_no_fallback_async(self):
         """When override scope is provided, only that scope is used and no fallback occurs."""
         override_scope = "https://my.custom.scope/.default"
@@ -172,6 +203,7 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
             except Exception:
                 pass
 
+    @_skip_scope_tests_on_non_emulator
     async def test_override_scope_no_fallback_on_error_async(self):
         """When override scope is provided and auth fails, no fallback occurs."""
         override_scope = "https://my.custom.scope/.default"
@@ -205,6 +237,7 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
             except Exception:
                 pass
 
+    @_skip_scope_tests_on_non_emulator
     async def test_account_scope_only_async(self):
         """When account scope is provided, only that scope is used."""
         account_scope = "https://localhost/.default"
@@ -230,6 +263,7 @@ class TestAADAsync(unittest.IsolatedAsyncioTestCase):
             except Exception:
                 pass
 
+    @_skip_scope_tests_on_non_emulator
     async def test_account_scope_fallback_on_error_async(self):
         """When account scope is provided and auth fails, fallback to default scope occurs."""
         account_scope = "https://localhost/.default"

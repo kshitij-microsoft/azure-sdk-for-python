@@ -101,7 +101,7 @@ class AccessPolicyAssignment(ProxyResource):
     )
     """Properties of the access policy assignment."""
 
-    __flattened_items = ["provisioning_state", "access_policy_name", "user"]
+    __flattened_items = ["provisioning_state", "access_policy_name", "access_string", "provisioning_error", "user"]
 
     @overload
     def __init__(
@@ -145,9 +145,16 @@ class AccessPolicyAssignmentProperties(_Model):
     :ivar provisioning_state: Current provisioning status of the access policy assignment. Known
      values are: "Succeeded", "Failed", "Canceled", "Creating", "Updating", and "Deleting".
     :vartype provisioning_state: str or ~azure.mgmt.redisenterprise.models.ProvisioningState
-    :ivar access_policy_name: Name of access policy under specific access policy assignment. Only
-     "default" policy is supported for now. Required.
+    :ivar access_policy_name: **Deprecated.** This property always returns "default". Use
+     ``accessString`` to configure custom Redis ACL permissions instead.
     :vartype access_policy_name: str
+    :ivar access_string: The Redis ACL permissions string applied to this assignment, for example
+     ``+@read ~cache:*``. Defaults to ``+@all ~*`` if not specified.
+    :vartype access_string: str
+    :ivar provisioning_error: Provisioning error details when the access string failed to apply
+     (e.g., invalid ACL syntax). Null when provisioning succeeded.
+    :vartype provisioning_error:
+     ~azure.mgmt.redisenterprise.models.AccessPolicyAssignmentProvisioningError
     :ivar user: The user associated with the access policy. Required.
     :vartype user: ~azure.mgmt.redisenterprise.models.AccessPolicyAssignmentPropertiesUser
     """
@@ -157,11 +164,21 @@ class AccessPolicyAssignmentProperties(_Model):
     )
     """Current provisioning status of the access policy assignment. Known values are: \"Succeeded\",
      \"Failed\", \"Canceled\", \"Creating\", \"Updating\", and \"Deleting\"."""
-    access_policy_name: str = rest_field(
+    access_policy_name: Optional[str] = rest_field(
         name="accessPolicyName", visibility=["read", "create", "update", "delete", "query"]
     )
-    """Name of access policy under specific access policy assignment. Only \"default\" policy is
-     supported for now. Required."""
+    """**Deprecated.** This property always returns \"default\". Use ``accessString`` to configure
+     custom Redis ACL permissions instead."""
+    access_string: Optional[str] = rest_field(
+        name="accessString", visibility=["read", "create", "update", "delete", "query"]
+    )
+    """The Redis ACL permissions string applied to this assignment, for example ``+@read ~cache:*``.
+     Defaults to ``+@all ~*`` if not specified."""
+    provisioning_error: Optional["_models.AccessPolicyAssignmentProvisioningError"] = rest_field(
+        name="provisioningError", visibility=["read"]
+    )
+    """Provisioning error details when the access string failed to apply (e.g., invalid ACL syntax).
+     Null when provisioning succeeded."""
     user: "_models.AccessPolicyAssignmentPropertiesUser" = rest_field(
         visibility=["read", "create", "update", "delete", "query"]
     )
@@ -171,8 +188,9 @@ class AccessPolicyAssignmentProperties(_Model):
     def __init__(
         self,
         *,
-        access_policy_name: str,
         user: "_models.AccessPolicyAssignmentPropertiesUser",
+        access_policy_name: Optional[str] = None,
+        access_string: Optional[str] = None,
     ) -> None: ...
 
     @overload
@@ -201,6 +219,44 @@ class AccessPolicyAssignmentPropertiesUser(_Model):
         self,
         *,
         object_id: Optional[str] = None,
+    ) -> None: ...
+
+    @overload
+    def __init__(self, mapping: Mapping[str, Any]) -> None:
+        """
+        :param mapping: raw JSON to initialize the model.
+        :type mapping: Mapping[str, Any]
+        """
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+
+
+class AccessPolicyAssignmentProvisioningError(_Model):
+    """Error details for access policy assignment provisioning failures.
+
+    :ivar code: Machine-readable error code (e.g., "InvalidAccessString"). Required.
+    :vartype code: str
+    :ivar message: Human-readable error message describing the failure. Required.
+    :vartype message: str
+    :ivar target: The property that caused the error (e.g., "properties.accessString").
+    :vartype target: str
+    """
+
+    code: str = rest_field(visibility=["read", "create", "update", "delete", "query"])
+    """Machine-readable error code (e.g., \"InvalidAccessString\"). Required."""
+    message: str = rest_field(visibility=["read", "create", "update", "delete", "query"])
+    """Human-readable error message describing the failure. Required."""
+    target: Optional[str] = rest_field(visibility=["read", "create", "update", "delete", "query"])
+    """The property that caused the error (e.g., \"properties.accessString\")."""
+
+    @overload
+    def __init__(
+        self,
+        *,
+        code: str,
+        message: str,
+        target: Optional[str] = None,
     ) -> None: ...
 
     @overload
@@ -432,7 +488,7 @@ class Cluster(TrackedResource):
     :vartype sku: ~azure.mgmt.redisenterprise.models.Sku
     :ivar zones: The availability zones.
     :vartype zones: list[str]
-    :ivar identity: The identity of the resource.
+    :ivar identity: The managed service identities assigned to this resource.
     :vartype identity: ~azure.mgmt.redisenterprise.models.ManagedServiceIdentity
     """
 
@@ -449,7 +505,7 @@ class Cluster(TrackedResource):
     identity: Optional["_models.ManagedServiceIdentity"] = rest_field(
         visibility=["read", "create", "update", "delete", "query"]
     )
-    """The identity of the resource."""
+    """The managed service identities assigned to this resource."""
 
     __flattened_items = [
         "high_availability",
@@ -828,7 +884,7 @@ class ClusterUpdate(_Model):
     :vartype sku: ~azure.mgmt.redisenterprise.models.Sku
     :ivar properties: Other properties of the cluster.
     :vartype properties: ~azure.mgmt.redisenterprise.models.ClusterUpdateProperties
-    :ivar identity: The identity of the resource.
+    :ivar identity: The managed service identities assigned to this resource.
     :vartype identity: ~azure.mgmt.redisenterprise.models.ManagedServiceIdentity
     :ivar tags: Resource tags.
     :vartype tags: dict[str, str]
@@ -843,7 +899,7 @@ class ClusterUpdate(_Model):
     identity: Optional["_models.ManagedServiceIdentity"] = rest_field(
         visibility=["read", "create", "update", "delete", "query"]
     )
-    """The identity of the resource."""
+    """The managed service identities assigned to this resource."""
     tags: Optional[dict[str, str]] = rest_field(visibility=["read", "create", "update"])
     """Resource tags."""
 
@@ -1011,6 +1067,7 @@ class Database(ProxyResource):
         "geo_replication",
         "redis_version",
         "defer_upgrade",
+        "notify_keyspace_events",
         "access_keys_authentication",
     ]
 
@@ -1097,6 +1154,13 @@ class DatabaseProperties(_Model):
      "Disabled" and "Enabled".
     :vartype access_keys_authentication: str or
      ~azure.mgmt.redisenterprise.models.AccessKeysAuthentication
+    :ivar notify_keyspace_events: Specifies which keyspace events should trigger notifications.
+     Default is an empty string, meaning this feature is disabled. When enabled, at least 'K'
+     (keyspace events) or 'E' (keyevent events) must be present. For example, 'AKE' enables all
+     standard events. See `https://redis.io/docs/latest/develop/use/keyspace-notifications/
+     <https://redis.io/docs/latest/develop/use/keyspace-notifications/>`_ for the complete list of
+     event types.
+    :vartype notify_keyspace_events: str
     """
 
     client_protocol: Optional[Union[str, "_models.Protocol"]] = rest_field(
@@ -1155,6 +1219,15 @@ class DatabaseProperties(_Model):
     )
     """This property can be Enabled/Disabled to allow or deny access with the current access keys. Can
      be updated even after database is created. Known values are: \"Disabled\" and \"Enabled\"."""
+    notify_keyspace_events: Optional[str] = rest_field(
+        name="notifyKeyspaceEvents", visibility=["read", "create", "update", "delete", "query"]
+    )
+    """Specifies which keyspace events should trigger notifications. Default is an empty string,
+     meaning this feature is disabled. When enabled, at least 'K' (keyspace events) or 'E' (keyevent
+     events) must be present. For example, 'AKE' enables all standard events. See
+     `https://redis.io/docs/latest/develop/use/keyspace-notifications/
+     <https://redis.io/docs/latest/develop/use/keyspace-notifications/>`_ for the complete list of
+     event types."""
 
     @overload
     def __init__(
@@ -1169,6 +1242,7 @@ class DatabaseProperties(_Model):
         geo_replication: Optional["_models.DatabasePropertiesGeoReplication"] = None,
         defer_upgrade: Optional[Union[str, "_models.DeferUpgradeSetting"]] = None,
         access_keys_authentication: Optional[Union[str, "_models.AccessKeysAuthentication"]] = None,
+        notify_keyspace_events: Optional[str] = None,
     ) -> None: ...
 
     @overload
@@ -1223,6 +1297,13 @@ class DatabaseCreateProperties(DatabaseProperties):
      NotDeferred. Learn more: `https://aka.ms/redisversionupgrade
      <https://aka.ms/redisversionupgrade>`_. Known values are: "Deferred" and "NotDeferred".
     :vartype defer_upgrade: str or ~azure.mgmt.redisenterprise.models.DeferUpgradeSetting
+    :ivar notify_keyspace_events: Specifies which keyspace events should trigger notifications.
+     Default is an empty string, meaning this feature is disabled. When enabled, at least 'K'
+     (keyspace events) or 'E' (keyevent events) must be present. For example, 'AKE' enables all
+     standard events. See `https://redis.io/docs/latest/develop/use/keyspace-notifications/
+     <https://redis.io/docs/latest/develop/use/keyspace-notifications/>`_ for the complete list of
+     event types.
+    :vartype notify_keyspace_events: str
     :ivar access_keys_authentication: This property can be Enabled/Disabled to allow or deny access
      with the current access keys. Can be updated even after database is created. Default is
      Disabled. Known values are: "Disabled" and "Enabled".
@@ -1242,6 +1323,7 @@ class DatabaseCreateProperties(DatabaseProperties):
         modules: Optional[list["_models.Module"]] = None,
         geo_replication: Optional["_models.DatabasePropertiesGeoReplication"] = None,
         defer_upgrade: Optional[Union[str, "_models.DeferUpgradeSetting"]] = None,
+        notify_keyspace_events: Optional[str] = None,
         access_keys_authentication: Optional[Union[str, "_models.AccessKeysAuthentication"]] = None,
     ) -> None: ...
 
@@ -1315,6 +1397,7 @@ class DatabaseUpdate(_Model):
         "geo_replication",
         "redis_version",
         "defer_upgrade",
+        "notify_keyspace_events",
         "access_keys_authentication",
     ]
 
@@ -1395,6 +1478,13 @@ class DatabaseUpdateProperties(DatabaseProperties):
      NotDeferred. Learn more: `https://aka.ms/redisversionupgrade
      <https://aka.ms/redisversionupgrade>`_. Known values are: "Deferred" and "NotDeferred".
     :vartype defer_upgrade: str or ~azure.mgmt.redisenterprise.models.DeferUpgradeSetting
+    :ivar notify_keyspace_events: Specifies which keyspace events should trigger notifications.
+     Default is an empty string, meaning this feature is disabled. When enabled, at least 'K'
+     (keyspace events) or 'E' (keyevent events) must be present. For example, 'AKE' enables all
+     standard events. See `https://redis.io/docs/latest/develop/use/keyspace-notifications/
+     <https://redis.io/docs/latest/develop/use/keyspace-notifications/>`_ for the complete list of
+     event types.
+    :vartype notify_keyspace_events: str
     :ivar access_keys_authentication: This property can be Enabled/Disabled to allow or deny access
      with the current access keys. Can be updated even after database is created. Default is
      Disabled. Known values are: "Disabled" and "Enabled".
@@ -1414,6 +1504,7 @@ class DatabaseUpdateProperties(DatabaseProperties):
         modules: Optional[list["_models.Module"]] = None,
         geo_replication: Optional["_models.DatabasePropertiesGeoReplication"] = None,
         defer_upgrade: Optional[Union[str, "_models.DeferUpgradeSetting"]] = None,
+        notify_keyspace_events: Optional[str] = None,
         access_keys_authentication: Optional[Union[str, "_models.AccessKeysAuthentication"]] = None,
     ) -> None: ...
 
@@ -1838,7 +1929,7 @@ class ManagedServiceIdentity(_Model):
      provided for a system assigned identity.
     :vartype tenant_id: str
     :ivar type: The type of managed identity assigned to this resource. Required. Known values are:
-     "None", "SystemAssigned", "UserAssigned", and "SystemAssigned,UserAssigned".
+     "None", "SystemAssigned", "UserAssigned", and "SystemAssigned, UserAssigned".
     :vartype type: str or ~azure.mgmt.redisenterprise.models.ManagedServiceIdentityType
     :ivar user_assigned_identities: The identities assigned to this resource by the user.
     :vartype user_assigned_identities: dict[str,
@@ -1855,7 +1946,7 @@ class ManagedServiceIdentity(_Model):
         visibility=["read", "create", "update", "delete", "query"]
     )
     """The type of managed identity assigned to this resource. Required. Known values are: \"None\",
-     \"SystemAssigned\", \"UserAssigned\", and \"SystemAssigned,UserAssigned\"."""
+     \"SystemAssigned\", \"UserAssigned\", and \"SystemAssigned, UserAssigned\"."""
     user_assigned_identities: Optional[dict[str, "_models.UserAssignedIdentity"]] = rest_field(
         name="userAssignedIdentities", visibility=["read", "create", "update", "delete", "query"]
     )

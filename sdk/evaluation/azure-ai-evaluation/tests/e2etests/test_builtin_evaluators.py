@@ -118,10 +118,14 @@ class TestBuiltInEvaluators:
             response="Tokyo is the capital of Japan.",
         )
         assert score is not None
-        assert "rouge_precision" in score and "rouge_recall" in score and "rouge_f1_score" in score
-        assert 0 <= score["rouge_precision"] <= 1
-        assert 0 <= score["rouge_recall"] <= 1
-        assert 0 <= score["rouge_f1_score"] <= 1
+        assert "rouge_score" in score
+        assert "rouge_properties" in score
+        properties = score["rouge_properties"]
+        assert "rouge_precision" in properties and "rouge_recall" in properties and "rouge_f1_score" in properties
+        assert 0 <= properties["rouge_precision"] <= 1
+        assert 0 <= properties["rouge_recall"] <= 1
+        assert 0 <= properties["rouge_f1_score"] <= 1
+        assert 0 <= score["rouge_score"] <= 1
 
     def test_quality_evaluator_fluency(self, sanitized_model_config, simple_conversation):
         eval_fn = FluencyEvaluator(sanitized_model_config)
@@ -129,14 +133,14 @@ class TestBuiltInEvaluators:
             response="The capital of Japan is Tokyo.",
         )
         assert score is not None
-        assert score["fluency"] > 1.0
+        assert score["fluency_score"] > 1.0
         assert score["fluency_reason"]
 
         # Test conversation input
         score2 = eval_fn(conversation=simple_conversation)
-        assert score2["fluency"] > 0
-        assert score2["evaluation_per_turn"]["fluency"][0] > 0
-        assert score2["evaluation_per_turn"]["fluency"][1] > 0
+        assert score2["fluency_score"] > 0
+        assert score2["evaluation_per_turn"]["fluency_score"][0] > 0
+        assert score2["evaluation_per_turn"]["fluency_score"][1] > 0
         assert score2["evaluation_per_turn"]["fluency_reason"][0]
         assert score2["evaluation_per_turn"]["fluency_reason"][1]
 
@@ -147,14 +151,14 @@ class TestBuiltInEvaluators:
             response="The capital of Japan is Tokyo.",
         )
         assert score is not None
-        assert score["coherence"] > 1.0
+        assert score["coherence_score"] > 1.0
         assert score["coherence_reason"]
 
         # Test conversation input
         score2 = eval_fn(conversation=simple_conversation)
-        assert score2["coherence"] > 0
-        assert score2["evaluation_per_turn"]["coherence"][0] > 0
-        assert score2["evaluation_per_turn"]["coherence"][1] > 0
+        assert score2["coherence_score"] > 0
+        assert score2["evaluation_per_turn"]["coherence_score"][0] > 0
+        assert score2["evaluation_per_turn"]["coherence_score"][1] > 0
         assert score2["evaluation_per_turn"]["coherence_reason"][0]
         assert score2["evaluation_per_turn"]["coherence_reason"][1]
 
@@ -166,7 +170,7 @@ class TestBuiltInEvaluators:
             ground_truth="Tokyo is Japan's capital.",
         )
         assert score is not None
-        assert score["similarity"] > 1.0
+        assert score["similarity_score"] > 1.0
 
     def test_quality_evaluator_groundedness(self, sanitized_model_config, simple_conversation):
         eval_fn = GroundednessEvaluator(sanitized_model_config)
@@ -175,14 +179,14 @@ class TestBuiltInEvaluators:
             context="Tokyo is Japan's capital.",
         )
         assert score is not None
-        assert score["groundedness"] > 1.0
+        assert score["groundedness_score"] > 1.0
         assert score["groundedness_reason"]
 
         # Test conversation input
         score2 = eval_fn(conversation=simple_conversation)
-        assert score2["groundedness"] > 0
-        assert score2["evaluation_per_turn"]["groundedness"][0] > 0
-        assert score2["evaluation_per_turn"]["groundedness"][1] > 0
+        assert score2["groundedness_score"] > 0
+        assert score2["evaluation_per_turn"]["groundedness_score"][0] > 0
+        assert score2["evaluation_per_turn"]["groundedness_score"][1] > 0
         assert score2["evaluation_per_turn"]["groundedness_reason"][0]
         assert score2["evaluation_per_turn"]["groundedness_reason"][1]
 
@@ -194,7 +198,7 @@ class TestBuiltInEvaluators:
             context="Tokyo is Japan's capital.",
         )
         assert score is not None
-        assert score["groundedness"] > 1.0
+        assert score["groundedness_score"] > 1.0
         assert score["groundedness_reason"]
 
     def test_quality_evaluator_relevance(self, sanitized_model_config, simple_conversation):
@@ -204,13 +208,13 @@ class TestBuiltInEvaluators:
             response="The capital of Japan is Tokyo.",
         )
         assert score is not None
-        assert score["relevance"] > 1.0
+        assert score["relevance_score"] > 1.0
 
         # Test conversation input
         score2 = eval_fn(conversation=simple_conversation)
-        assert score2["relevance"] > 0
-        assert score2["evaluation_per_turn"]["relevance"][0] > 0
-        assert score2["evaluation_per_turn"]["relevance"][1] > 0
+        assert score2["relevance_score"] > 0
+        assert score2["evaluation_per_turn"]["relevance_score"][0] > 0
+        assert score2["evaluation_per_turn"]["relevance_score"][1] > 0
 
     def test_quality_evaluator_f1_score(self):
         eval_fn = F1ScoreEvaluator()
@@ -219,7 +223,7 @@ class TestBuiltInEvaluators:
             ground_truth="Tokyo is Japan's capital.",
         )
         assert score is not None
-        assert score["f1_score"] > 0.0
+        assert score["f1_score_score"] > 0.0
 
     def test_quality_evaluator_prompt_based_with_dict_input(self, sanitized_model_config):
         eval_fn = FluencyEvaluator(sanitized_model_config)
@@ -238,12 +242,12 @@ class TestBuiltInEvaluators:
             context="2 + 3 = 5",
         )
         assert score is not None
-        assert score["retrieval"] > 0.0
+        assert score["retrieval_score"] > 0.0
 
         # Test conversation input
         score2 = eval_fn(conversation=simple_conversation)
-        assert score2["retrieval"] > 0
-        assert score2["evaluation_per_turn"]["retrieval"][0] > 0
+        assert score2["retrieval_score"] > 0
+        assert score2["evaluation_per_turn"]["retrieval_score"][0] > 0
 
     @pytest.mark.parametrize(
         ("proj_scope", "cred", "conv"),
@@ -831,12 +835,12 @@ class TestBuiltInEvaluators:
         )
 
         assert score is not None
-        assert score["groundedness"] > 0.0
-        assert score["relevance"] > 0.0
-        assert score["coherence"] > 0.0
-        assert score["fluency"] > 0.0
-        assert score["similarity"] > 0.0
-        assert score["f1_score"] > 0.0
+        assert score["groundedness_score"] > 0.0
+        assert score["relevance_score"] > 0.0
+        assert score["coherence_score"] > 0.0
+        assert score["fluency_score"] > 0.0
+        assert score["similarity_score"] > 0.0
+        assert score["f1_score_score"] > 0.0
 
     @pytest.mark.skipif(
         True,
@@ -854,12 +858,12 @@ class TestBuiltInEvaluators:
         )
 
         assert score is not None
-        assert score["groundedness"] == score["gpt_groundedness"] > 0.0
-        assert score["relevance"] == score["gpt_relevance"] > 0.0
-        assert score["coherence"] == score["gpt_coherence"] > 0.0
-        assert score["fluency"] == score["gpt_fluency"] > 0.0
-        assert score["similarity"] == score["gpt_similarity"] > 0.0
-        assert score["f1_score"] > 0.0
+        assert score["groundedness_score"] > 0.0
+        assert score["relevance_score"] > 0.0
+        assert score["coherence_score"] > 0.0
+        assert score["fluency_score"] > 0.0
+        assert score["similarity_score"] > 0.0
+        assert score["f1_score_score"] > 0.0
 
     def test_composite_evaluator_qa_for_nans(self, sanitized_model_config):
         qa_eval = QAEvaluator(sanitized_model_config)
@@ -871,11 +875,11 @@ class TestBuiltInEvaluators:
             context="gray",
         )
 
-        assert not math.isnan(score["groundedness"])
-        assert not math.isnan(score["relevance"])
-        assert not math.isnan(score["coherence"])
-        assert not math.isnan(score["fluency"])
-        assert not math.isnan(score["similarity"])
+        assert not math.isnan(score["groundedness_score"])
+        assert not math.isnan(score["relevance_score"])
+        assert not math.isnan(score["coherence_score"])
+        assert not math.isnan(score["fluency_score"])
+        assert not math.isnan(score["similarity_score"])
 
     @pytest.mark.parametrize("parallel", [True, False])
     @pytest.mark.parametrize(
@@ -1778,9 +1782,10 @@ class TestUserAgent:
 
         expected_user_agent = f"{base_user_agent} {added_useragent}"
 
-        from httpx import AsyncClient, Request
+        from openai import _base_client as openai_base_client
 
-        with self._transparent_mock_method(AsyncClient, "send") as mock:  # OpenAI requests sent with httpx
+        # __openai_patcher replaces this alias at import time; patching the alias is transport-agnostic.
+        with self._transparent_mock_method(openai_base_client.AsyncHttpxClientWrapper, "send") as mock:
             evaluator = evaluator_cls(user_agent_model_config)
 
             with UserAgentSingleton.add_useragent_product(added_useragent):
@@ -1790,7 +1795,6 @@ class TestUserAgent:
 
                 for call_args in mock.call_args_list:
                     _, request, *_ = call_args.args
-                    request: Request
 
                     # Not checking for strict equality because some evaluators add to the user agent
                     assert expected_user_agent in request.headers["User-Agent"]

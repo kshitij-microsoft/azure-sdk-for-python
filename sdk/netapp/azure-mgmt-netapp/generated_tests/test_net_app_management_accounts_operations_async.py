@@ -103,11 +103,23 @@ class TestNetAppManagementAccountsOperationsAsync(AzureMgmtRecordedTestCase):
                             },
                         },
                         "ldapConfiguration": {
+                            "bindAuthenticationLevel": "str",
+                            "bindDN": "str",
+                            "bindPasswordAkvConfig": {
+                                "azureKeyVaultUri": "str",
+                                "secretName": "str",
+                                "userAssignedIdentity": "str",
+                            },
                             "certificateCNHost": "str",
+                            "dnsServers": ["str"],
                             "domain": "str",
-                            "ldapOverTLS": bool,
+                            "groupDN": "str",
+                            "ldapPort": 0,
                             "ldapServers": ["str"],
+                            "netGroupDN": "str",
+                            "secureLdapType": "str",
                             "serverCACertificate": "str",
+                            "userDN": "str",
                         },
                         "multiAdStatus": "str",
                         "nfsV4IDDomain": "str",
@@ -138,15 +150,12 @@ class TestNetAppManagementAccountsOperationsAsync(AzureMgmtRecordedTestCase):
                 resource_group_name=resource_group.name,
                 account_name="str",
                 body={
-                    "id": "str",
                     "identity": {
                         "type": "str",
                         "principalId": "str",
                         "tenantId": "str",
                         "userAssignedIdentities": {"str": {"clientId": "str", "principalId": "str"}},
                     },
-                    "location": "str",
-                    "name": "str",
                     "properties": {
                         "activeDirectories": [
                             {
@@ -201,17 +210,27 @@ class TestNetAppManagementAccountsOperationsAsync(AzureMgmtRecordedTestCase):
                             "serverNamePrefix": "str",
                         },
                         "ldapConfiguration": {
+                            "bindAuthenticationLevel": "str",
+                            "bindDN": "str",
+                            "bindPasswordAkvConfig": {
+                                "azureKeyVaultUri": "str",
+                                "secretName": "str",
+                                "userAssignedIdentity": "str",
+                            },
                             "certificateCNHost": "str",
+                            "dnsServers": ["str"],
                             "domain": "str",
-                            "ldapOverTLS": bool,
+                            "groupDN": "str",
+                            "ldapPort": 0,
                             "ldapServers": ["str"],
+                            "netGroupDN": "str",
+                            "secureLdapType": "str",
                             "serverCACertificate": "str",
+                            "userDN": "str",
                         },
-                        "multiAdStatus": "str",
                         "nfsV4IDDomain": "str",
                     },
                     "tags": {"str": "str"},
-                    "type": "str",
                 },
             )
         ).result()  # call '.result()' to poll until service return final result
@@ -294,6 +313,19 @@ class TestNetAppManagementAccountsOperationsAsync(AzureMgmtRecordedTestCase):
     async def test_accounts_begin_change_key_vault(self, resource_group):
         response = await (
             await self.client.accounts.begin_change_key_vault(
+                resource_group_name=resource_group.name,
+                account_name="str",
+            )
+        ).result()  # call '.result()' to poll until service return final result
+
+        # please add some check logic here by yourself
+        # ...
+
+    @RandomNameResourceGroupPreparer(location=AZURE_LOCATION)
+    @recorded_by_proxy_async
+    async def test_accounts_begin_refresh_ldap_bind_password(self, resource_group):
+        response = await (
+            await self.client.accounts.begin_refresh_ldap_bind_password(
                 resource_group_name=resource_group.name,
                 account_name="str",
             )
